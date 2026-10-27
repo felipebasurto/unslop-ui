@@ -34,6 +34,8 @@ class CounterTest(unittest.TestCase):
             "U9 badge word": 3,
             "U10 status dot": 2,
             "U11 emoji": 6,
+            "U15 chart scaffolding": 4,
+            "U16 legend": 1,
             "unslop 13 em dash": 3,
         }
         for rule, n in expected.items():
@@ -45,6 +47,14 @@ class CounterTest(unittest.TestCase):
     def test_ignores_code_comments(self):
         with tempfile.NamedTemporaryFile("w", suffix=".tsx", delete=False) as f:
             f.write("// 01 — a comment with an em dash 🚀\nconst x = 1;\n")
+        try:
+            self.assertEqual(count(f.name)["total"], 0)
+        finally:
+            os.unlink(f.name)
+
+    def test_allows_hairline_chart_baseline(self):
+        with tempfile.NamedTemporaryFile("w", suffix=".js", delete=False) as f:
+            f.write('x: { grid: { lineWidth: 1 }, border: { display: true, width: 1 } },\n')
         try:
             self.assertEqual(count(f.name)["total"], 0)
         finally:

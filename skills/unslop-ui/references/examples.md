@@ -7,6 +7,7 @@
 - Status line (U6, U10)
 - KPI tile (U11, U14)
 - Chart header (U12, U13)
+- Chart scaffolding and legend (U15, U16)
 - Form field (U7)
 
 ## Hero with eyebrow (U1, U3, U8)
@@ -114,6 +115,32 @@ After:
 title: { text: 'Weekly active users' },
 legend: { display: false },
 ```
+
+## Chart scaffolding and legend (U15, U16)
+
+Before:
+```js
+datasets: [{ label: 'This year', data: thisYear }, { label: 'Last year', data: lastYear }],
+plugins: { legend: { display: true, position: 'bottom' } },
+scales: {
+  y: { grid: { color: '#9ca3af', lineWidth: 2 }, border: { display: true, width: 2 }, ticks: { stepSize: 25 } },
+},
+```
+
+After:
+```js
+datasets: [{ label: 'This year', data: thisYear }, { label: 'Last year', data: lastYear }],
+plugins: {
+  legend: { display: false },
+  // Name each line at its last point instead of in a legend.
+  datalabels: { display: (ctx) => ctx.dataIndex === ctx.dataset.data.length - 1, formatter: (v, ctx) => `${ctx.dataset.label} ${v}` },
+},
+scales: {
+  y: { grid: { color: '#eeeeee', lineWidth: 1 }, border: { display: false } },
+},
+```
+
+Same chart type, data and series colors. The gridlines become hairlines, the axis border goes, and the legend becomes two labels at the line ends.
 
 ## Form field (U7)
 

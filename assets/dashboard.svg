@@ -15,9 +15,14 @@
     .tagtext { fill: #b42323; }
     .good { fill: #15803d; }
     .live { fill: #22c55e; }
-    .series { stroke: #2a78d6; fill: none; }
-    .dot { fill: #2a78d6; stroke: #ffffff; }
-    .legend { fill: #2a78d6; }
+    .line { fill: none; }
+    .s1 { stroke: #2a78d6; }
+    .s2 { stroke: #eb6834; }
+    .s1f { fill: #2a78d6; }
+    .s2f { fill: #eb6834; }
+    .dot { stroke: #ffffff; }
+    .frame { stroke: #3f3f46; }
+    .darkgrid { stroke: #a1a1aa; }
     text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; }
     @media (prefers-color-scheme: dark) {
       .page { fill: #18181b; stroke: #3f3f46; }
@@ -32,9 +37,13 @@
       .tag { fill: #3b1515; stroke: #7f2a2a; }
       .tagtext { fill: #fca5a5; }
       .good { fill: #4ade80; }
-      .series { stroke: #3987e5; }
-      .dot { fill: #3987e5; stroke: #18181b; }
-      .legend { fill: #3987e5; }
+      .s1 { stroke: #3987e5; }
+      .s2 { stroke: #d95926; }
+      .s1f { fill: #3987e5; }
+      .s2f { fill: #d95926; }
+      .dot { stroke: #18181b; }
+      .frame { stroke: #d4d4d8; }
+      .darkgrid { stroke: #52525b; }
     }
   </style>
   <text class="head" x="24" y="26" font-size="15" font-weight="600">Before</text>

@@ -5,7 +5,7 @@ Usage: python3 count_tells.py <file-or-folder> [...]
 
 Prints JSON: {rule: {"count": n, "examples": ["file:line", ...]}}.
 Regex heuristic for before/after comparison. It misses tells that need
-reading (U3, U4, U5, U7, U8, U12, U13) and can flag legitimate cases.
+reading (U3, U4, U5, U7, U8, U12, U13, U14) and can flag legitimate cases.
 """
 import json
 import os
@@ -28,6 +28,8 @@ RULES = [
     ("U9 badge word", re.compile(r">\s*(?:LIVE|Live|NEW|New|BETA|Beta|AI|PRO|Pro|HOT|Hot)\s*<|['\"`](?:LIVE|NEW|BETA|HOT)['\"`]")),
     ("U10 status dot", re.compile(r"animate-pulse|animate-ping|\brounded-full\b(?=.*\b(?:size-[12](?:\.5)?|[hw]-(?:1|1\.5|2|2\.5))\b)")),
     ("U11 emoji", EMOJI),
+    ("U15 chart scaffolding", re.compile(r"feDropShadow|drop-shadow\(|shadowBlur|shadowColor|\bminor\s*:\s*\{|border\s*:\s*\{[^}]*width\s*:\s*(?:[2-9]|1\.[5-9])|grid\s*:\s*\{[^}]*lineWidth\s*:\s*(?:[2-9]|1\.[5-9])")),
+    ("U16 legend", re.compile(r"legend\s*:\s*\{[^}]*display\s*:\s*true|<Legend\b")),
     ("unslop 13 em dash", re.compile(r"—|&mdash;|&#8212;|\\u2014")),
 ]
 

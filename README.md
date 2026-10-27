@@ -31,7 +31,9 @@ It is the interface companion to [`/pstack:unslop`](https://github.com/cursor/pl
 | U11 | Decorative emojis | `🚀 Get started`, `💰 Revenue` |
 | U12 | Chart titles that name the chart | "Line chart of weekly active users" |
 | U13 | Reading instructions | "Each point represents one week. Hover for details." |
-| U14 | Saying it twice | `▲ 12% up` plus "Revenue grew 12% compared to last month" |
+| U14 | Saying it twice | A value on every point plus axis plus gridlines; `▲ 12% up` plus "Revenue grew 12%..." |
+| U15 | Chart scaffolding | Frame box around the plot, dark or dense gridlines, thick axes, shadows, 3D |
+| U16 | Legend instead of a label | A legend box when each line could carry its name at its end |
 
 It leaves logic, data, colors and layout alone. It keeps `aria-label`, `alt` and screen-reader text, and moves a cut label into `aria-label` when it was the only accessible name. Anything that reflects real state (a live connection, a real step order) stays, and the report says why.
 
@@ -70,18 +72,32 @@ Full files: [before](examples/before/Dashboard.tsx), [after](examples/after/Dash
 
 ### A chart
 
-![A line chart before and after: the title names the metric, the reading instructions, legend and per-point labels are gone](assets/chart.svg)
+![A two-series line chart before and after: the title names the metric, the reading instructions, per-point labels, frame, dark grid and legend are gone, and each line is labeled at its end](assets/chart.svg)
 
 <details>
 <summary>See the code change</summary>
 
 ```diff
--  title: { display: true, text: "📈 Line chart of weekly active users" },
--  subtitle: { display: true, text: "Each point represents one week — hover over a point to see the exact value." },
--  legend: { display: true },
--  datalabels: { display: true },
-+  title: { display: true, text: "Weekly active users" },
-+  legend: { display: false },
+   plugins: {
+-    title: { display: true, text: "📈 Line chart of weekly active users" },
+-    subtitle: { display: true, text: "Each point represents one week — hover over a point to see the exact value." },
+-    legend: { display: true, position: "bottom" },
+-    datalabels: { display: true },
++    title: { display: true, text: "Weekly active users" },
++    legend: { display: false },
++    datalabels: {
++      display: (ctx) => ctx.dataIndex === ctx.dataset.data.length - 1,
++      formatter: (value, ctx) => `${ctx.dataset.label} ${value}`,
++      align: "right",
++      offset: 8,
++    },
+   },
+   scales: {
+-    x: { grid: { color: "#9ca3af", lineWidth: 2 }, border: { display: true, width: 2, color: "#111827" } },
+-    y: { grid: { color: "#9ca3af", lineWidth: 2 }, border: { display: true, width: 2, color: "#111827" }, ticks: { stepSize: 25 } },
++    x: { grid: { color: "#e5e7eb", lineWidth: 1 }, border: { display: true, width: 1, color: "#d1d5db" } },
++    y: { grid: { color: "#e5e7eb", lineWidth: 1 }, border: { display: false }, ticks: { stepSize: 25 } },
+   },
 ```
 
 Full files: [before](examples/before/chart.js), [after](examples/after/chart.js).
@@ -98,7 +114,7 @@ The page from the drawing at the top, rendered in a browser. Full files: [before
 
 ![Bar chart: the counter finds 26 tells in examples/before and 0 after one run](assets/counts.svg)
 
-The counter only sees the patterns a regex can find. The run also removed 12 tells it can't see (subtitles, botsplaining, slogans, chart titles), counted by reading.
+The counter only sees the patterns a regex can find. The run also removes the ones that need reading, such as subtitles, botsplaining, slogans and chart titles, and its report counts those separately.
 
 ## Install
 
@@ -148,13 +164,13 @@ followed by what it kept on purpose and what needs your decision, such as a stat
 
 ## The counter
 
-`scripts/count_tells.py` is a regex counter for the patterns that can be found mechanically (U1, U2, U6, U9, U10, U11 and em dashes). The skill runs it before and after editing. You can run it on its own, in CI for example:
+`scripts/count_tells.py` is a regex counter for the patterns that can be found mechanically (U1, U2, U6, U9, U10, U11, em dashes, and the code forms of U15 and U16: shadows, thick axis borders and gridlines, legends turned on). The skill runs it before and after editing. You can run it on its own, in CI for example:
 
 ```bash
 python3 skills/unslop-ui/scripts/count_tells.py src/
 ```
 
-It prints JSON with a count and up to five `file:line` locations per rule. It is a heuristic: it catches candidates, misses the patterns that need reading (U3 to U5, U7, U8, U12, U13) and flags some legitimate cases.
+It prints JSON with a count and up to five `file:line` locations per rule. It is a heuristic: it catches candidates, misses the patterns that need reading (U3 to U5, U7, U8, U12 to U14) and flags some legitimate cases.
 
 ## Compatibility
 
@@ -174,9 +190,13 @@ python3 -m unittest discover -s tests
 
 The tests check that the counter finds every planted pattern in `examples/before`, finds none in `examples/after`, ignores code comments, and that the loader picks the newest pstack install or falls back cleanly.
 
+## Pairs well with
+
+[tufte-claude-skill](https://github.com/aref-vc/tufte-claude-skill) builds charts from Edward Tufte's principles: chart choice, graphical integrity, small multiples. `unslop-ui` doesn't redesign charts. It borrows the subtractive half of those ideas (one encoding per quantity, faint scaffolding, direct labels over legends) as U14 to U16, so you can build with the Tufte skill and clean up any interface with this one.
+
 ## Credits
 
-The unslop rules are by [Lauren Tan](https://github.com/poteto), from [pstack](https://github.com/cursor/plugins/tree/main/pstack) (MIT). The UI patterns come from what designers and developers keep pointing out about AI-built interfaces in 2026.
+The unslop rules are by [Lauren Tan](https://github.com/poteto), from [pstack](https://github.com/cursor/plugins/tree/main/pstack) (MIT). U14 to U16 follow Edward Tufte's data-ink and chartjunk principles. The other UI patterns come from what designers and developers keep pointing out about AI-built interfaces in 2026.
 
 ## License
 
