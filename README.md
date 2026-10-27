@@ -37,60 +37,60 @@ It leaves logic, data, colors and layout alone. It keeps `aria-label`, `alt` and
 
 ## Examples
 
-All three come from [`examples/`](examples): the files in `before/` were written to be full of tells, and `after/` is the unedited output of one `/unslop-ui` run in a fresh Claude Code session.
+All three come from [`examples/`](examples): the files in `before/` were written to be full of tells, and `after/` is the unedited output of one `/unslop-ui` run in a fresh Claude Code session. The drawings show those files rendered with sample data, and each tell carries the id of the rule that removed it.
 
 ### A dashboard
 
-Eyebrow and subtitle go, emojis leave the card titles, the KPI says its change once, and the pulsing "Live" dot goes because nothing in the component is live.
+![A dashboard before and after: the eyebrow, subtitle, emojis, Live dot, self-describing captions and status string are gone](assets/dashboard.svg)
+
+<details>
+<summary>See the code change</summary>
 
 ```diff
-       <div>
--        <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-muted-foreground">Overview</p>
-         <h1 className="text-2xl font-semibold">Dashboard</h1>
--        <p className="text-muted-foreground">A real-time overview of your key business metrics, all in one place.</p>
-       </div>
-         <Card>
--          <CardTitle>💰 Total revenue</CardTitle>
-+          <CardTitle>Total revenue</CardTitle>
-           <strong>${revenue.toLocaleString()}</strong>
--          <span className="text-green-600">▲ 12% up</span>
--          <CardDescription>Revenue grew 12% compared to last month, showing strong momentum.</CardDescription>
-+          <span className="text-green-600">+12% vs last month</span>
-         </Card>
-         <Card>
--          <CardTitle>👥 Active users</CardTitle>
-+          <CardTitle>Active users</CardTitle>
-           <strong>{users}</strong>
--          <span className="flex items-center gap-1 text-xs"><span className="size-2 rounded-full bg-emerald-500 animate-ping" />Live</span>
--          <CardDescription>This card shows the number of users active right now (updates in real time).</CardDescription>
-         </Card>
-         <Card>
--          <CardTitle>📉 Churn</CardTitle>
-+          <CardTitle>Churn</CardTitle>
-           <strong>{churn}%</strong>
--          <span className="text-xs">Last 30 days · All plans · Excl. trials</span>
-+          <span className="text-xs">Last 30 days</span>
-         </Card>
+-  <p className="... uppercase tracking-[0.2em] ...">Overview</p>
+   <h1 className="text-2xl font-semibold">Dashboard</h1>
+-  <p className="text-muted-foreground">A real-time overview of your key business metrics, all in one place.</p>
+
+-  <CardTitle>💰 Total revenue</CardTitle>
++  <CardTitle>Total revenue</CardTitle>
+-  <span className="text-green-600">▲ 12% up</span>
+-  <CardDescription>Revenue grew 12% compared to last month, showing strong momentum.</CardDescription>
++  <span className="text-green-600">+12% vs last month</span>
+
+-  <span ...><span className="size-2 rounded-full bg-emerald-500 animate-ping" />Live</span>
+-  <CardDescription>This card shows the number of users active right now (updates in real time).</CardDescription>
+
+-  <span className="text-xs">Last 30 days · All plans · Excl. trials</span>
++  <span className="text-xs">Last 30 days</span>
 ```
+
+Full files: [before](examples/before/Dashboard.tsx), [after](examples/after/Dashboard.tsx).
+
+</details>
 
 ### A chart
 
-The title names the metric instead of the chart type, the reading instructions go, and a single series loses its legend and per-point labels.
+![A line chart before and after: the title names the metric, the reading instructions, legend and per-point labels are gone](assets/chart.svg)
+
+<details>
+<summary>See the code change</summary>
 
 ```diff
-       plugins: {
--        title: { display: true, text: "📈 Line chart of weekly active users" },
--        subtitle: { display: true, text: "Each point represents one week — hover over a point to see the exact value." },
--        legend: { display: true },
--        datalabels: { display: true },
-+        title: { display: true, text: "Weekly active users" },
-+        legend: { display: false },
-       },
+-  title: { display: true, text: "📈 Line chart of weekly active users" },
+-  subtitle: { display: true, text: "Each point represents one week — hover over a point to see the exact value." },
+-  legend: { display: true },
+-  datalabels: { display: true },
++  title: { display: true, text: "Weekly active users" },
++  legend: { display: false },
 ```
+
+Full files: [before](examples/before/chart.js), [after](examples/after/chart.js).
+
+</details>
 
 ### A landing page
 
-The page from the drawing at the top, rendered in a browser:
+The page from the drawing at the top, rendered in a browser. Full files: [before](examples/before/landing.html), [after](examples/after/landing.html).
 
 ![The landing example rendered before and after](assets/before-after.png)
 

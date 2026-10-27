@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 708" width="1280" height="708" role="img" aria-labelledby="t d">
+  <title id="t">A dashboard before and after /unslop-ui</title>
+  <desc id="d">Before: an OVERVIEW eyebrow, a subtitle, emojis in every card title, a KPI that states its change twice, a Live dot on static data, cards that describe themselves, and a status string. After: the title and three cards with a label, a value and at most one line of context.</desc>
+  <style>
+    .page { fill: #ffffff; stroke: #d4d4d8; }
+    .card { fill: #fafafa; stroke: #e4e4e7; }
+    .ink { fill: #18181b; }
+    .ink2 { fill: #52525b; }
+    .muted { fill: #a1a1aa; }
+    .head { fill: #71717a; }
+    .rule { stroke: #e4e4e7; }
+    .grid { stroke: #ececec; }
+    .tell { fill: #d03b3b; }
+    .tag { fill: #fdecec; stroke: #f3b4b4; }
+    .tagtext { fill: #b42323; }
+    .good { fill: #15803d; }
+    .live { fill: #22c55e; }
+    .series { stroke: #2a78d6; fill: none; }
+    .dot { fill: #2a78d6; stroke: #ffffff; }
+    .legend { fill: #2a78d6; }
+    text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; }
+    @media (prefers-color-scheme: dark) {
+      .page { fill: #18181b; stroke: #3f3f46; }
+      .card { fill: #1f1f22; stroke: #34343a; }
+      .ink { fill: #f4f4f5; }
+      .ink2 { fill: #a1a1aa; }
+      .muted { fill: #71717a; }
+      .head { fill: #a1a1aa; }
+      .rule { stroke: #27272a; }
+      .grid { stroke: #2a2a2e; }
+      .tell { fill: #f87171; }
+      .tag { fill: #3b1515; stroke: #7f2a2a; }
+      .tagtext { fill: #fca5a5; }
+      .good { fill: #4ade80; }
+      .series { stroke: #3987e5; }
+      .dot { fill: #3987e5; stroke: #18181b; }
+      .legend { fill: #3987e5; }
+    }
+  </style>
+  <text class="head" x="24" y="26" font-size="15" font-weight="600">Before</text>
+  <rect class="page" x="24" y="40" width="1232" height="352" rx="12"/>
+  <text class="tell" x="56" y="84" font-size="11" font-weight="600" letter-spacing="2.2">OVERVIEW</text>
+  <rect class="tag" x="1202" y="70" width="30" height="20" rx="10"/><text class="tagtext" x="1217.0" y="84" font-size="11" font-weight="700" text-anchor="middle">U1</text>
+  <text class="ink" x="56" y="116" font-size="24" font-weight="700">Dashboard</text>
+  <text class="tell" x="56" y="144" font-size="14">A real-time overview of your key business metrics, all in one place.</text>
+  <rect class="tag" x="1202" y="130" width="30" height="20" rx="10"/><text class="tagtext" x="1217.0" y="144" font-size="11" font-weight="700" text-anchor="middle">U3</text>
+  <rect class="card" x="56" y="172" width="376" height="196" rx="10"/>
+  <text class="tell" x="74" y="206" font-size="14" font-weight="600">💰 Total revenue</text>
+  <rect class="tag" x="382" y="192" width="36" height="20" rx="10"/><text class="tagtext" x="400.0" y="206" font-size="11" font-weight="700" text-anchor="middle">U11</text>
+  <text class="ink" x="74" y="248" font-size="30" font-weight="700">$48,200</text>
+  <text class="good" x="74" y="280" font-size="13" font-weight="600">▲ 12% up</text>
+  <rect class="tag" x="382" y="266" width="36" height="20" rx="10"/><text class="tagtext" x="400.0" y="280" font-size="11" font-weight="700" text-anchor="middle">U14</text>
+  <text class="tell" x="74" y="314" font-size="13">Revenue grew 12% compared to last month,</text>
+  <text class="tell" x="74" y="334" font-size="13">showing strong momentum.</text>
+  <rect class="tag" x="382" y="310" width="36" height="20" rx="10"/><text class="tagtext" x="400.0" y="324" font-size="11" font-weight="700" text-anchor="middle">U14</text>
+  <rect class="card" x="456" y="172" width="376" height="196" rx="10"/>
+  <text class="tell" x="474" y="206" font-size="14" font-weight="600">👥 Active users</text>
+  <rect class="tag" x="782" y="192" width="36" height="20" rx="10"/><text class="tagtext" x="800.0" y="206" font-size="11" font-weight="700" text-anchor="middle">U11</text>
+  <text class="ink" x="474" y="248" font-size="30" font-weight="700">1,284</text>
+  <circle class="live" cx="479" cy="275" r="4"/>
+  <text class="tell" x="490" y="280" font-size="13" font-weight="600">Live</text>
+  <rect class="tag" x="782" y="266" width="36" height="20" rx="10"/><text class="tagtext" x="800.0" y="280" font-size="11" font-weight="700" text-anchor="middle">U10</text>
+  <text class="tell" x="474" y="314" font-size="13">This card shows the number of users</text>
+  <text class="tell" x="474" y="334" font-size="13">active right now (updates in real time).</text>
+  <rect class="tag" x="788" y="310" width="30" height="20" rx="10"/><text class="tagtext" x="803.0" y="324" font-size="11" font-weight="700" text-anchor="middle">U5</text>
+  <rect class="card" x="856" y="172" width="376" height="196" rx="10"/>
+  <text class="tell" x="874" y="206" font-size="14" font-weight="600">📉 Churn</text>
+  <rect class="tag" x="1182" y="192" width="36" height="20" rx="10"/><text class="tagtext" x="1200.0" y="206" font-size="11" font-weight="700" text-anchor="middle">U11</text>
+  <text class="ink" x="874" y="248" font-size="30" font-weight="700">2.1%</text>
+  <text class="tell" x="874" y="280" font-size="13">Last 30 days · All plans · Excl. trials</text>
+  <rect class="tag" x="1188" y="266" width="30" height="20" rx="10"/><text class="tagtext" x="1203.0" y="280" font-size="11" font-weight="700" text-anchor="middle">U6</text>
+  <text class="head" x="24" y="422" font-size="15" font-weight="600">After /unslop-ui</text>
+  <rect class="page" x="24" y="436" width="1232" height="248" rx="12"/>
+  <text class="ink" x="56" y="484" font-size="24" font-weight="700">Dashboard</text>
+  <rect class="card" x="56" y="512" width="376" height="140" rx="10"/>
+  <text class="ink2" x="74" y="546" font-size="14" font-weight="600">Total revenue</text>
+  <text class="ink" x="74" y="588" font-size="30" font-weight="700">$48,200</text>
+  <text class="good" x="74" y="620" font-size="13" font-weight="600">+12% vs last month</text>
+  <rect class="card" x="456" y="512" width="376" height="140" rx="10"/>
+  <text class="ink2" x="474" y="546" font-size="14" font-weight="600">Active users</text>
+  <text class="ink" x="474" y="588" font-size="30" font-weight="700">1,284</text>
+  <rect class="card" x="856" y="512" width="376" height="140" rx="10"/>
+  <text class="ink2" x="874" y="546" font-size="14" font-weight="600">Churn</text>
+  <text class="ink" x="874" y="588" font-size="30" font-weight="700">2.1%</text>
+  <text class="ink2" x="874" y="620" font-size="13">Last 30 days</text>
+</svg>
