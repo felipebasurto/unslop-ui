@@ -1,0 +1,14 @@
+{
+  "name": "unslop-ui",
+  "description": "Cut AI tells from interface and chart copy",
+  "owner": {
+    "name": "Felipe Basurto"
+  },
+  "plugins": [
+    {
+      "name": "unslop-ui",
+      "source": "./",
+      "description": "Cut AI tells from interface and chart copy: eyebrow labels, 01/02/03 numbering, captions that explain what is visible, decorative badges and status dots."
+    }
+  ]
+}
