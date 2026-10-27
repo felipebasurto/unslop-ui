@@ -1,10 +1,18 @@
-# unslop-ui
+<h1 align="center">unslop-ui</h1>
 
-An agent skill that removes the text and decoration that make an interface look AI-generated: eyebrow labels over every heading, `01 // 02 // 03` numbering, subtitles nobody needs, captions that explain what is already on screen, "LIVE" badges and pulsing dots that track nothing.
+<p align="center">An agent skill that strips the AI look out of interface and chart copy.</p>
+
+<p align="center">
+  <a href="https://github.com/felipebasurto/unslop-ui/actions/workflows/test.yml"><img src="https://github.com/felipebasurto/unslop-ui/actions/workflows/test.yml/badge.svg" alt="Tests"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT license"></a>
+  <a href="https://agentskills.io"><img src="https://img.shields.io/badge/format-Agent%20Skills-555" alt="Agent Skills format"></a>
+</p>
+
+![A landing page with eleven AI tells tagged by rule id, next to the same page after /unslop-ui](assets/anatomy.svg)
+
+Agents decorate everything they build: a tiny uppercase label over every heading, `01 //` before each feature, a subtitle that repeats the title, a caption explaining the button you are looking at, a green "LIVE" dot wired to nothing. `unslop-ui` finds those patterns, removes them, and tells you what it cut and what it left for you to decide.
 
 It is the interface companion to [`/pstack:unslop`](https://github.com/cursor/plugins/tree/main/pstack), which cleans prose. `unslop-ui` loads unslop's rules when it runs and applies them to every string it keeps.
-
-![The same landing page before and after running /unslop-ui](assets/before-after.png)
 
 ## What it removes
 
@@ -26,6 +34,71 @@ It is the interface companion to [`/pstack:unslop`](https://github.com/cursor/pl
 | U14 | Saying it twice | `▲ 12% up` plus "Revenue grew 12% compared to last month" |
 
 It leaves logic, data, colors and layout alone. It keeps `aria-label`, `alt` and screen-reader text, and moves a cut label into `aria-label` when it was the only accessible name. Anything that reflects real state (a live connection, a real step order) stays, and the report says why.
+
+## Examples
+
+All three come from [`examples/`](examples): the files in `before/` were written to be full of tells, and `after/` is the unedited output of one `/unslop-ui` run in a fresh Claude Code session.
+
+### A dashboard
+
+Eyebrow and subtitle go, emojis leave the card titles, the KPI says its change once, and the pulsing "Live" dot goes because nothing in the component is live.
+
+```diff
+       <div>
+-        <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-muted-foreground">Overview</p>
+         <h1 className="text-2xl font-semibold">Dashboard</h1>
+-        <p className="text-muted-foreground">A real-time overview of your key business metrics, all in one place.</p>
+       </div>
+         <Card>
+-          <CardTitle>💰 Total revenue</CardTitle>
++          <CardTitle>Total revenue</CardTitle>
+           <strong>${revenue.toLocaleString()}</strong>
+-          <span className="text-green-600">▲ 12% up</span>
+-          <CardDescription>Revenue grew 12% compared to last month, showing strong momentum.</CardDescription>
++          <span className="text-green-600">+12% vs last month</span>
+         </Card>
+         <Card>
+-          <CardTitle>👥 Active users</CardTitle>
++          <CardTitle>Active users</CardTitle>
+           <strong>{users}</strong>
+-          <span className="flex items-center gap-1 text-xs"><span className="size-2 rounded-full bg-emerald-500 animate-ping" />Live</span>
+-          <CardDescription>This card shows the number of users active right now (updates in real time).</CardDescription>
+         </Card>
+         <Card>
+-          <CardTitle>📉 Churn</CardTitle>
++          <CardTitle>Churn</CardTitle>
+           <strong>{churn}%</strong>
+-          <span className="text-xs">Last 30 days · All plans · Excl. trials</span>
++          <span className="text-xs">Last 30 days</span>
+         </Card>
+```
+
+### A chart
+
+The title names the metric instead of the chart type, the reading instructions go, and a single series loses its legend and per-point labels.
+
+```diff
+       plugins: {
+-        title: { display: true, text: "📈 Line chart of weekly active users" },
+-        subtitle: { display: true, text: "Each point represents one week — hover over a point to see the exact value." },
+-        legend: { display: true },
+-        datalabels: { display: true },
++        title: { display: true, text: "Weekly active users" },
++        legend: { display: false },
+       },
+```
+
+### A landing page
+
+The page from the drawing at the top, rendered in a browser:
+
+![The landing example rendered before and after](assets/before-after.png)
+
+### By the numbers
+
+![Bar chart: the counter finds 26 tells in examples/before and 0 after one run](assets/counts.svg)
+
+The counter only sees the patterns a regex can find. The run also removed 12 tells it can't see (subtitles, botsplaining, slogans, chart titles), counted by reading.
 
 ## Install
 
@@ -82,10 +155,6 @@ python3 skills/unslop-ui/scripts/count_tells.py src/
 ```
 
 It prints JSON with a count and up to five `file:line` locations per rule. It is a heuristic: it catches candidates, misses the patterns that need reading (U3 to U5, U7, U8, U12, U13) and flags some legitimate cases.
-
-## Examples
-
-[`examples/before`](examples/before) holds a landing page, a React dashboard and a Chart.js config full of these patterns. [`examples/after`](examples/after) is the unedited output of one `/unslop-ui` run on them in a fresh Claude Code session.
 
 ## Compatibility
 

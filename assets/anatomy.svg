@@ -1,0 +1,107 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 600" width="1280" height="600" role="img" aria-labelledby="t d">
+  <title id="t">The same landing page before and after /unslop-ui</title>
+  <desc id="d">On the left, a landing page with each AI tell tagged by its rule id: status dot and status string, eyebrow label, staccato slogan, filler subtitle, emoji button, a caption that explains the button, decorative numbering and a NEW badge. On the right, the cleaned page with only a header, a plain headline, one sentence, the button and one feature.</desc>
+  <style>
+    .page { fill: #ffffff; stroke: #d4d4d8; }
+    .ink { fill: #18181b; }
+    .ink2 { fill: #52525b; }
+    .muted { fill: #a1a1aa; }
+    .rule { stroke: #e4e4e7; }
+    .tell { fill: #d03b3b; }
+    .tag { fill: #fdecec; stroke: #f3b4b4; }
+    .tagtext { fill: #b42323; }
+    .btn { fill: #4f46e5; }
+    .btntext { fill: #ffffff; }
+    .live { fill: #22c55e; }
+    .badge { fill: #eef2ff; }
+    .head { fill: #71717a; }
+    text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    @media (prefers-color-scheme: dark) {
+      .page { fill: #18181b; stroke: #3f3f46; }
+      .ink { fill: #f4f4f5; }
+      .ink2 { fill: #a1a1aa; }
+      .muted { fill: #71717a; }
+      .rule { stroke: #27272a; }
+      .tell { fill: #f87171; }
+      .tag { fill: #3b1515; stroke: #7f2a2a; }
+      .tagtext { fill: #fca5a5; }
+      .btn { fill: #6366f1; }
+      .badge { fill: #312e81; }
+      .head { fill: #a1a1aa; }
+    }
+  </style>
+
+  <!-- Column headings -->
+  <text class="head" x="24" y="26" font-size="15" font-weight="600">Before</text>
+  <text class="head" x="656" y="26" font-size="15" font-weight="600">After /unslop-ui</text>
+
+  <!-- ===== Before ===== -->
+  <rect class="page" x="24" y="40" width="600" height="536" rx="12"/>
+
+  <!-- Tag gutter: one pill per tell, aligned to its row -->
+  <g font-size="11" font-weight="700" text-anchor="middle">
+    <rect class="tag" x="40" y="66" width="34" height="20" rx="10"/><text class="tagtext" x="57" y="80">U10</text>
+    <rect class="tag" x="78" y="66" width="30" height="20" rx="10"/><text class="tagtext" x="93" y="80">U6</text>
+
+    <rect class="tag" x="40" y="128" width="30" height="20" rx="10"/><text class="tagtext" x="55" y="142">U1</text>
+    <rect class="tag" x="40" y="160" width="30" height="20" rx="10"/><text class="tagtext" x="55" y="174">U8</text>
+    <rect class="tag" x="40" y="206" width="30" height="20" rx="10"/><text class="tagtext" x="55" y="220">U3</text>
+    <rect class="tag" x="40" y="264" width="30" height="20" rx="10"/><text class="tagtext" x="55" y="278">U11</text>
+    <rect class="tag" x="40" y="308" width="30" height="20" rx="10"/><text class="tagtext" x="55" y="322">U4</text>
+
+    <rect class="tag" x="40" y="380" width="30" height="20" rx="10"/><text class="tagtext" x="55" y="394">U2</text>
+    <rect class="tag" x="40" y="404" width="30" height="20" rx="10"/><text class="tagtext" x="55" y="418">U1</text>
+    <rect class="tag" x="40" y="432" width="30" height="20" rx="10"/><text class="tagtext" x="55" y="446">U9</text>
+    <rect class="tag" x="40" y="462" width="30" height="20" rx="10"/><text class="tagtext" x="55" y="476">U4</text>
+  </g>
+
+  <!-- Header -->
+  <text class="ink" x="128" y="81" font-size="16" font-weight="700">Ledger</text>
+  <circle class="live" cx="352" cy="76" r="4"/>
+  <text class="tell" x="364" y="80" font-size="13">Live · v2.4 · All systems operational</text>
+  <line class="rule" x1="40" y1="104" x2="608" y2="104"/>
+
+  <!-- Hero -->
+  <text class="tell" x="128" y="143" font-size="12" font-weight="600" letter-spacing="2.4">INTRODUCING LEDGER</text>
+  <text class="tell" x="128" y="180" font-size="27" font-weight="800">Finance. Simplified. Finally.</text>
+  <text class="tell" x="128" y="216" font-size="14.5">The all-in-one platform that helps modern teams</text>
+  <text class="tell" x="128" y="238" font-size="14.5">seamlessly manage their money — without the hassle.</text>
+
+  <rect class="btn" x="128" y="256" width="150" height="36" rx="8"/>
+  <path class="btntext" d="M146 266 l2.2 5.2 5.2 2.2 -5.2 2.2 -2.2 5.2 -2.2 -5.2 -5.2 -2.2 5.2 -2.2z"/>
+  <text class="btntext" x="160" y="279" font-size="14" font-weight="600">Get started</text>
+  <text class="tell" x="128" y="323" font-size="13">Click the button above to create your free account.</text>
+
+  <line class="rule" x1="40" y1="354" x2="608" y2="354"/>
+
+  <!-- Feature -->
+  <text class="tell mono" x="128" y="395" font-size="13">01 //</text>
+  <text class="tell" x="128" y="419" font-size="11" font-weight="600" letter-spacing="1.8">FEATURE</text>
+  <text class="ink" x="128" y="447" font-size="16" font-weight="600">Smart sync</text>
+  <rect class="badge" x="222" y="433" width="40" height="18" rx="9"/>
+  <text class="tell" x="242" y="446" font-size="10.5" font-weight="700" text-anchor="middle">NEW</text>
+  <text class="tell" x="128" y="477" font-size="14">Our smart sync feature automatically keeps your</text>
+  <text class="tell" x="128" y="497" font-size="14">files in sync across all of your devices.</text>
+
+  <text class="muted" x="128" y="550" font-size="12">11 tells tagged with their rule id</text>
+
+  <!-- ===== After ===== -->
+  <rect class="page" x="656" y="40" width="600" height="536" rx="12"/>
+
+  <text class="ink" x="688" y="81" font-size="16" font-weight="700">Ledger</text>
+  <line class="rule" x1="672" y1="104" x2="1240" y2="104"/>
+
+  <text class="ink" x="688" y="180" font-size="27" font-weight="800">Manage your team's money.</text>
+  <text class="ink2" x="688" y="216" font-size="14.5">Ledger tracks spending, receipts and cards.</text>
+
+  <rect class="btn" x="688" y="256" width="124" height="36" rx="8"/>
+  <text class="btntext" x="750" y="279" font-size="14" font-weight="600" text-anchor="middle">Get started</text>
+
+  <line class="rule" x1="672" y1="354" x2="1240" y2="354"/>
+
+  <text class="ink" x="688" y="395" font-size="16" font-weight="600">Sync across devices</text>
+  <text class="ink2" x="688" y="425" font-size="14">Edits on your phone show up on your laptop.</text>
+
+  <text class="muted" x="688" y="550" font-size="12">0 tells. Same layout, colors and button.</text>
+</svg>
