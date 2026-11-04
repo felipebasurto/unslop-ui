@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 """Count UI slop candidates in a file or folder.
 
-Usage: python3 count_tells.py <file-or-folder> [...]
+Usage: python3 count_tells.py [--surface] <file-or-folder> [...]
 
 Prints JSON: {rule: {"count": n, "examples": ["file:line", ...]}}.
 Regex heuristic for before/after comparison. It misses tells that need
 reading (U3, U4, U5, U7, U8, U12, U13, U14) and can flag legitimate cases.
+--surface adds the visual rules U17 to U20 (gradients and glows, off-scale
+spacing, extra-heavy weights, motion).
 """
 import json
 import os
@@ -34,6 +36,38 @@ RULES = [
 ]
 
 
+SPACING_UTILITY = re.compile(r"(?<![\w-])-?(?:[mp][trblxyse]?|gap(?:-[xy])?|space-[xy])-\[(\d+)px\]")
+SPACING_PROPERTY = re.compile(r"\b(?:margin|padding)(?:-(?:top|right|bottom|left))?\s*:\s*(\d+)px\s*(?:[;}\"']|$)|\bgap\s*:\s*(\d+)px")
+
+
+def count_off_scale(line):
+    values = [m.group(1) for m in SPACING_UTILITY.finditer(line)]
+    for m in SPACING_PROPERTY.finditer(line):
+        values.append(m.group(1) or m.group(2))
+    return sum(1 for v in values if int(v) % 4 != 0 and int(v) != 2)
+
+
+def regex_counter(regex):
+    return lambda line: len(regex.findall(line))
+
+
+RULES = [(name, regex_counter(regex)) for name, regex in RULES]
+
+SURFACE_RULES = [
+    ("U17 gradient or glow", regex_counter(re.compile(
+        r"\bbg-(?:gradient|linear|radial|conic)-to?-?|(?:linear|radial|conic)-gradient\(|\bbg-clip-text\b|background-clip:\s*text"
+        r"|\bblur-(?:2xl|3xl)\b|\bshadow-\[0_0_|\bshadow-[a-z]+-\d{2,3}(?:/\d+)?\b|box-shadow:[^;]*\b0\s+0\s+\d+px"
+    ))),
+    ("U18 off-scale spacing", count_off_scale),
+    ("U19 extra-heavy weight", regex_counter(re.compile(
+        r"\bfont-(?:extrabold|black)\b|font-?[wW]eight\W{0,3}[89]00\b|\bfont-\[[89]00\]"
+    ))),
+    ("U20 motion", regex_counter(re.compile(
+        r"\btransition-all\b|transition:\s*all\b|\bhover:scale-|\banimate-bounce\b"
+    ))),
+]
+
+
 def iter_files(targets):
     for target in targets:
         if os.path.isfile(target):
@@ -52,16 +86,19 @@ def is_code_comment(line):
 
 
 def main():
-    targets = sys.argv[1:]
+    args = sys.argv[1:]
+    surface = "--surface" in args
+    targets = [a for a in args if a != "--surface"]
     if not targets:
-        print("Usage: python3 count_tells.py <file-or-folder> [...]", file=sys.stderr)
+        print("Usage: python3 count_tells.py [--surface] <file-or-folder> [...]", file=sys.stderr)
         sys.exit(2)
     missing = [t for t in targets if not os.path.exists(t)]
     if missing:
         print("Not found: " + ", ".join(missing), file=sys.stderr)
         sys.exit(2)
 
-    results = {name: {"count": 0, "examples": []} for name, _ in RULES}
+    rules = RULES + SURFACE_RULES if surface else RULES
+    results = {name: {"count": 0, "examples": []} for name, _ in rules}
     for path in iter_files(targets):
         try:
             with open(path, encoding="utf-8", errors="replace") as f:
@@ -72,8 +109,8 @@ def main():
         for lineno, line in enumerate(lines, 1):
             if is_code_comment(line):
                 continue
-            for name, regex in RULES:
-                hits = len(regex.findall(line))
+            for name, counter in rules:
+                hits = counter(line)
                 if hits:
                     entry = results[name]
                     entry["count"] += hits
