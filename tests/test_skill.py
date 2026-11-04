@@ -60,6 +60,36 @@ class CounterTest(unittest.TestCase):
         finally:
             os.unlink(f.name)
 
+    def test_surface_rules_are_opt_in(self):
+        src = (
+            '<div className="mt-[13px] p-[16px] gap-[7px] bg-gradient-to-r from-purple-500 to-blue-500 '
+            'font-black transition-all hover:scale-105 shadow-[0_0_20px_rgba(0,0,0,.5)]">\n'
+            "<h1 style={{ fontWeight: 800 }}>x</h1>\n"
+            ".a { padding: 11px; margin: 8px 4px; transition: all .3s; }\n"
+        )
+        with tempfile.NamedTemporaryFile("w", suffix=".tsx", delete=False) as f:
+            f.write(src)
+        try:
+            self.assertEqual(count(f.name)["total"], 0)
+            result = run(COUNTER, "--surface", f.name)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            counts = json.loads(result.stdout)
+            self.assertEqual(counts["U17 gradient or glow"]["count"], 2)
+            self.assertEqual(counts["U18 off-scale spacing"]["count"], 3)
+            self.assertEqual(counts["U19 extra-heavy weight"]["count"], 2)
+            self.assertEqual(counts["U20 motion"]["count"], 3)
+        finally:
+            os.unlink(f.name)
+
+    def test_surface_ignores_on_scale_spacing(self):
+        with tempfile.NamedTemporaryFile("w", suffix=".tsx", delete=False) as f:
+            f.write('<div className="mt-[12px] p-[2px] gap-[24px] transition-colors">x</div>\n')
+        try:
+            result = run(COUNTER, "--surface", f.name)
+            self.assertEqual(json.loads(result.stdout)["total"], 0)
+        finally:
+            os.unlink(f.name)
+
     def test_missing_path_fails(self):
         self.assertEqual(run(COUNTER, "does/not/exist").returncode, 2)
 

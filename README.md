@@ -1,6 +1,6 @@
 <h1 align="center">unslop-ui</h1>
 
-<p align="center">An agent skill that strips the AI look out of interface and chart copy.</p>
+<p align="center">An agent skill that strips the AI look out of interface and chart copy, and optionally its visual surface.</p>
 
 <p align="center">
   <a href="https://github.com/felipebasurto/unslop-ui/actions/workflows/test.yml"><img src="https://github.com/felipebasurto/unslop-ui/actions/workflows/test.yml/badge.svg" alt="Tests"></a>
@@ -35,7 +35,26 @@ It is the interface companion to [`/pstack:unslop`](https://github.com/cursor/pl
 | U15 | Chart scaffolding | Frame box around the plot, dark or dense gridlines, thick axes, shadows, 3D |
 | U16 | Legend instead of a label | A legend box when each line could carry its name at its end |
 
-It leaves logic, data, colors and layout alone. It keeps `aria-label`, `alt` and screen-reader text, and moves a cut label into `aria-label` when it was the only accessible name. Anything that reflects real state (a live connection, a real step order) stays, and the report says why.
+### Surface rules (opt-in)
+
+Add `--surface` and the skill also fixes four visual tells, each with a concrete replacement value from [`references/tokens.md`](skills/unslop-ui/references/tokens.md):
+
+| Id | Pattern | Fix |
+|---|---|---|
+| U17 | Hue-to-hue gradients, gradient text, colored glows, blurred blobs | Solid neutral surface, hairline border, shadow no stronger than `0 1px 2px rgb(0 0 0 / 0.05)` |
+| U18 | Off-scale spacing: `mt-[13px]`, `gap: 7px` | Nearest step of 4, 8, 12, 16, 20, 24, 32, 40, 48, 64 |
+| U19 | `font-extrabold`, `font-black`, weights 800 and 900 | 500 or 600 |
+| U20 | `transition-all`, `hover:scale-*` on cards, `animate-bounce` | Named properties at 150ms ease-out |
+
+```
+/unslop-ui src/pages/dashboard.tsx --surface
+```
+
+Without the flag these four never run, so a plain `/unslop-ui` behaves as before. They replace a value with a better value. They don't change the palette, the type family or the layout. For that, see [Pairs well with](#pairs-well-with).
+
+Every run ends with a verdict: heavy (work through every rule), light (fix only what was found) or none (edit nothing, say so). A screen with nothing to cut is left alone.
+
+Without `--surface` it leaves logic, data, colors and layout alone. It keeps `aria-label`, `alt` and screen-reader text, and moves a cut label into `aria-label` when it was the only accessible name. Anything that reflects real state (a live connection, a real step order) stays, and the report says why.
 
 ## Examples
 
@@ -164,10 +183,11 @@ followed by what it kept on purpose and what needs your decision, such as a stat
 
 ## The counter
 
-`scripts/count_tells.py` is a regex counter for the patterns that can be found mechanically (U1, U2, U6, U9, U10, U11, em dashes, and the code forms of U15 and U16: shadows, thick axis borders and gridlines, legends turned on). The skill runs it before and after editing. You can run it on its own, in CI for example:
+`scripts/count_tells.py` is a regex counter for the patterns that can be found mechanically (U1, U2, U6, U9, U10, U11, em dashes, and the code forms of U15 and U16: shadows, thick axis borders and gridlines, legends turned on). With `--surface` it also counts U17 to U20. The skill runs it before and after editing. You can run it on its own, in CI for example:
 
 ```bash
 python3 skills/unslop-ui/scripts/count_tells.py src/
+python3 skills/unslop-ui/scripts/count_tells.py --surface src/
 ```
 
 It prints JSON with a count and up to five `file:line` locations per rule. It is a heuristic: it catches candidates, misses the patterns that need reading (U3 to U5, U7, U8, U12 to U14) and flags some legitimate cases.
@@ -194,7 +214,11 @@ The tests check that the counter finds every planted pattern in `examples/before
 
 [tufte-claude-skill](https://github.com/aref-vc/tufte-claude-skill) builds charts from Edward Tufte's principles: chart choice, graphical integrity, small multiples. `unslop-ui` doesn't redesign charts. It borrows the subtractive half of those ideas (one encoding per quantity, faint scaffolding, direct labels over legends) as U14 to U16, so you can build with the Tufte skill and clean up any interface with this one.
 
+[unslop](https://github.com/heydamir/unslop) by Damir Sokolovsky ([@heydamir](https://x.com/heydamir)) covers the whole screen instead of the copy: it writes a short design direction first, then works through spacing, color, icons, copy, type, layout, details, visuals and motion, with starting tokens for each. If a dashboard needs a redesign and not only a cleanup, run it first, then run `unslop-ui` as the final copy and chart pass. `unslop-ui` stays subtractive on purpose: it won't pick a direction, a palette or a type family for you.
+
 ## Credits
+
+The `--surface` rules, the verdict step and the report-as-tasks list were suggested by user feedback after comparing this skill with [unslop](https://github.com/heydamir/unslop) (CC BY 4.0). The values in `references/tokens.md` are written for this skill, using common practice (a 4px grid, 4.5:1 contrast, hairline borders).
 
 The unslop rules are by [Lauren Tan](https://github.com/poteto), from [pstack](https://github.com/cursor/plugins/tree/main/pstack) (MIT). U14 to U16 follow Edward Tufte's data-ink and chartjunk principles. The other UI patterns come from what designers and developers keep pointing out about AI-built interfaces in 2026.
 
