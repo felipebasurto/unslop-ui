@@ -54,7 +54,9 @@ Without the flag these four never run, so a plain `/unslop-ui` behaves as before
 
 Every run ends with a verdict: heavy (work through every rule), light (fix only what was found) or none (edit nothing, say so). A screen with nothing to cut is left alone.
 
-Without `--surface` it leaves logic, data, colors and layout alone. It keeps `aria-label`, `alt` and screen-reader text, and moves a cut label into `aria-label` when it was the only accessible name. Anything that reflects real state (a live connection, a real step order) stays, and the report says why.
+Without `--surface` it leaves logic, data, colors and layout alone. It keeps `aria-label`, `alt` and screen-reader text, and a form field keeps its visible label. Anything that reflects real state (a badge rendered from a prop, a real step order) stays, and the report says why.
+
+It cuts first and writes little. When a slogan has to become a sentence, the new text uses only what the page already says: it never adds a number, a speed or a feature. Claims the code can't verify, such as "Trusted by 10,000+ teams" or a testimonial, are left in place and listed as tasks for you.
 
 ## Examples
 
@@ -68,15 +70,17 @@ All three come from [`examples/`](examples): the files in `before/` were written
 <summary>See the code change</summary>
 
 ```diff
--  <p className="... uppercase tracking-[0.2em] ...">Overview</p>
-   <h1 className="text-2xl font-semibold">Dashboard</h1>
--  <p className="text-muted-foreground">A real-time overview of your key business metrics, all in one place.</p>
+-  <div>
+-    <p className="... uppercase tracking-[0.2em] ...">Overview</p>
+     <h1 className="text-2xl font-semibold">Dashboard</h1>
+-    <p className="text-muted-foreground">A real-time overview of your key business metrics, all in one place.</p>
+-  </div>
 
 -  <CardTitle>💰 Total revenue</CardTitle>
 +  <CardTitle>Total revenue</CardTitle>
 -  <span className="text-green-600">▲ 12% up</span>
 -  <CardDescription>Revenue grew 12% compared to last month, showing strong momentum.</CardDescription>
-+  <span className="text-green-600">+12% vs last month</span>
++  <span className="text-green-600">▲ 12% vs last month</span>
 
 -  <span ...><span className="size-2 rounded-full bg-emerald-500 animate-ping" />Live</span>
 -  <CardDescription>This card shows the number of users active right now (updates in real time).</CardDescription>
@@ -108,14 +112,13 @@ Full files: [before](examples/before/Dashboard.tsx), [after](examples/after/Dash
 +      display: (ctx) => ctx.dataIndex === ctx.dataset.data.length - 1,
 +      formatter: (value, ctx) => `${ctx.dataset.label} ${value}`,
 +      align: "right",
-+      offset: 8,
 +    },
    },
    scales: {
 -    x: { grid: { color: "#9ca3af", lineWidth: 2 }, border: { display: true, width: 2, color: "#111827" } },
 -    y: { grid: { color: "#9ca3af", lineWidth: 2 }, border: { display: true, width: 2, color: "#111827" }, ticks: { stepSize: 25 } },
-+    x: { grid: { color: "#e5e7eb", lineWidth: 1 }, border: { display: true, width: 1, color: "#d1d5db" } },
-+    y: { grid: { color: "#e5e7eb", lineWidth: 1 }, border: { display: false }, ticks: { stepSize: 25 } },
++    x: { grid: { color: "#e5e7eb", lineWidth: 1 }, border: { display: true, width: 1, color: "#e5e7eb" } },
++    y: { grid: { color: "#e5e7eb", lineWidth: 1 }, border: { display: true, width: 1, color: "#e5e7eb" }, ticks: { stepSize: 25 } },
    },
 ```
 
@@ -131,9 +134,9 @@ The page from the drawing at the top, rendered in a browser. Full files: [before
 
 ### By the numbers
 
-![Bar chart: the counter finds 26 tells in examples/before and 0 after one run](assets/counts.svg)
+![Bar chart: the counter finds 31 tells in examples/before and 0 after one run](assets/counts.svg)
 
-The counter only sees the patterns a regex can find. The run also removes the ones that need reading, such as subtitles, botsplaining, slogans and chart titles, and its report counts those separately.
+The counter only sees the patterns a regex can find. The run also removes the ones that need reading, such as subtitles, botsplaining and slogans, and its report counts those separately.
 
 ## Install
 
@@ -159,7 +162,7 @@ By hand:
 git clone https://github.com/felipebasurto/unslop-ui && cp -R unslop-ui/skills/unslop-ui ~/.claude/skills/
 ```
 
-For the full effect, install [pstack](https://github.com/cursor/plugins/tree/main/pstack) too. Without it, `unslop-ui` falls back to a short list of prose rules.
+Install [pstack](https://github.com/cursor/plugins/tree/main/pstack) too and `unslop-ui` reads its unslop rules on every run, so it follows their updates. Without it, the skill uses a condensed copy of the same rules that ships in [`references/unslop-fallback.md`](skills/unslop-ui/references/unslop-fallback.md). Either way it loads only the rules that apply to interface text and skips the ones written for documents.
 
 ## Use
 
@@ -171,26 +174,45 @@ Pass a file, a folder or a component name. With no argument it works on the file
 
 The skill only runs when you call it. It never triggers on its own, because cutting copy is a decision you should make.
 
-Each run ends with a report:
+Each run ends with a report. This one is from the run that produced `examples/after`, shortened:
 
-| Rule | Before | After |
-|---|---|---|
-| U1 eyebrow | 5 | 0 |
-| U2 decorative numbering | 3 | 0 |
-| unslop 13 em dash | 3 | 0 |
+| Rule | Before | After | Kept |
+|---|---|---|---|
+| U1 eyebrow | 5 | 0 | |
+| U4 botsplaining | 5 | 0 | |
+| U11 emoji | 6 | 0 | |
+| unslop 13 em dash | 3 | 0 | |
 
-followed by what it kept on purpose and what needs your decision, such as a status dot that might be wired to real data.
+**Rewritten**
+```
+"Finance. Simplified. Finally." → "Manage your team's money" (U8, from the cut hero line "manage their money")
+"▲ 12% up" → "▲ 12% vs last month" (U14, the period came from the cut description)
+"📈 Line chart of weekly active users" → "Weekly active users" (U12)
+```
+
+**Kept on purpose**
+- `aria-label="Subscribe to newsletter"`: guardrail.
+- The email label: it stays visible. I added `for="email"` and `id="email"` so it is tied to the input.
+
+**Tasks**
+- [ ] `Dashboard.tsx:15`  "12%" is hard-coded, not bound to data. Bind it to a prop or confirm it is a placeholder.
+- [ ] `landing.html`  The hero now has no supporting line. If you want one, add a fact you can verify (price, free tier, integrations).
+
+The table counts what was found and what is left. "Rewritten" lists every string the skill wrote, old and new, because that is the part you have to check. Deletions are in the diff. "Kept" is how many hits it left on purpose, so the count doesn't have to reach 0: the skill is told never to delete something legitimate to get there.
 
 ## The counter
 
-`scripts/count_tells.py` is a regex counter for the patterns that can be found mechanically (U1, U2, U6, U9, U10, U11, em dashes, and the code forms of U15 and U16: shadows, thick axis borders and gridlines, legends turned on). With `--surface` it also counts U17 to U20. The skill runs it before and after editing. You can run it on its own, in CI for example:
+`scripts/count_tells.py` is a regex counter for the patterns that can be found mechanically: U1, U2, U6, U9, U10, U11, em dashes, and the common code forms of U12, U13, U15 and U16 (a title that names the chart type, "hover over", shadows, thick axis borders and gridlines, legends turned on). With `--surface` it also counts U17 to U20. The skill runs it before and after editing. You can run it on its own, and `--max` makes it fail a CI job:
 
 ```bash
 python3 skills/unslop-ui/scripts/count_tells.py src/
 python3 skills/unslop-ui/scripts/count_tells.py --surface src/
+python3 skills/unslop-ui/scripts/count_tells.py --max 0 src/   # exit 1 above 0
 ```
 
-It prints JSON with a count and up to five `file:line` locations per rule. It is a heuristic: it catches candidates, misses the patterns that need reading (U3 to U5, U7, U8, U12 to U14) and flags some legitimate cases.
+It reads HTML, JSX, TSX, JS, TS, Vue, Svelte, Astro, Markdown and MDX, plus CSS, SCSS and Less for the styling rules, JSON for translation files, and Python for matplotlib and Plotly charts. It prints JSON with a count and up to five `file:line` locations per rule.
+
+It is a heuristic. It can't see the patterns that need reading (U3 to U5, U7, U8, U14). It skips what usually isn't a tell: comments, loading skeletons, uppercase table headers, a lone "—" in an empty cell, a single "·" between two facts, "New" on a button. It still flags some legitimate cases, such as a badge that is wired to real data.
 
 ## Compatibility
 
@@ -208,7 +230,25 @@ The counter needs Python 3.9 or newer and no packages.
 python3 -m unittest discover -s tests
 ```
 
-The tests check that the counter finds every planted pattern in `examples/before`, finds none in `examples/after`, ignores code comments, and that the loader picks the newest pstack install or falls back cleanly.
+The tests check that the counter finds every planted pattern in `examples/before`, finds none in `examples/after`, ignores comments and the legitimate look-alikes, and that the loader picks the newest pstack install, keeps only the rules for interfaces, or falls back to the bundled copy.
+
+The counter can only reward deleting, so the behavior of the skill itself has its own check. [`evals/`](evals) holds five small screens and what must be true after a run:
+
+| Fixture | What it checks |
+|---|---|
+| `clean` | A screen with nothing to cut comes back byte-identical |
+| `real-state` | A badge, a dot and numbering tied to real state or real order survive; the decorative ones go |
+| `i18n` | Copy in a translation file is fixed there, not hard-coded into the component |
+| `form` | Labels stay visible and tied to their inputs; a real constraint and an accessible name stay |
+| `claims` | Slogans go without invented facts or numbers; unverifiable social proof is reported, not deleted |
+
+```bash
+python3 evals/run.py                       # runs `claude -p` on every fixture, then checks
+python3 evals/run.py form claims           # only these
+python3 evals/run.py --agent 'codex exec' --prompt '$unslop-ui .'   # another agent
+```
+
+It copies the fixtures to a temporary folder, runs the agent there, and prints what failed with the path to the edited copies and each run's report. It needs an agent CLI and spends tokens, so it is not part of CI. Run it after changing `SKILL.md`.
 
 ## Pairs well with
 

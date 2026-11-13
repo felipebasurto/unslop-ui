@@ -84,7 +84,7 @@
   <rect class="card" x="56" y="512" width="376" height="140" rx="10"/>
   <text class="ink2" x="74" y="546" font-size="14" font-weight="600">Total revenue</text>
   <text class="ink" x="74" y="588" font-size="30" font-weight="700">$48,200</text>
-  <text class="good" x="74" y="620" font-size="13" font-weight="600">+12% vs last month</text>
+  <text class="good" x="74" y="620" font-size="13" font-weight="600">▲ 12% vs last month</text>
   <rect class="card" x="456" y="512" width="376" height="140" rx="10"/>
   <text class="ink2" x="474" y="546" font-size="14" font-weight="600">Active users</text>
   <text class="ink" x="474" y="588" font-size="30" font-weight="700">1,284</text>

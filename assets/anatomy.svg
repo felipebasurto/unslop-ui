@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 600" width="1280" height="600" role="img" aria-labelledby="t d">
   <title id="t">The same landing page before and after /unslop-ui</title>
-  <desc id="d">On the left, a landing page with each AI tell tagged by its rule id: status dot and status string, eyebrow label, staccato slogan, filler subtitle, emoji button, a caption that explains the button, decorative numbering and a NEW badge. On the right, the cleaned page with only a header, a plain headline, one sentence, the button and one feature.</desc>
+  <desc id="d">On the left, a landing page with each AI tell tagged by its rule id: status dot and status string, eyebrow label, staccato slogan, filler subtitle, emoji button, a caption that explains the button, decorative numbering and a NEW badge. On the right, the cleaned page with only a header, a plain headline, the button and one feature.</desc>
   <style>
     .page { fill: #ffffff; stroke: #d4d4d8; }
     .ink { fill: #18181b; }
@@ -92,16 +92,15 @@
   <text class="ink" x="688" y="81" font-size="16" font-weight="700">Ledger</text>
   <line class="rule" x1="672" y1="104" x2="1240" y2="104"/>
 
-  <text class="ink" x="688" y="180" font-size="27" font-weight="800">Manage your team's money.</text>
-  <text class="ink2" x="688" y="216" font-size="14.5">Ledger tracks spending, receipts and cards.</text>
+  <text class="ink" x="688" y="180" font-size="27" font-weight="800">Manage your team's money</text>
 
   <rect class="btn" x="688" y="256" width="124" height="36" rx="8"/>
   <text class="btntext" x="750" y="279" font-size="14" font-weight="600" text-anchor="middle">Get started</text>
 
   <line class="rule" x1="672" y1="354" x2="1240" y2="354"/>
 
-  <text class="ink" x="688" y="395" font-size="16" font-weight="600">Sync across devices</text>
-  <text class="ink2" x="688" y="425" font-size="14">Edits on your phone show up on your laptop.</text>
+  <text class="ink" x="688" y="395" font-size="16" font-weight="600">Smart sync</text>
+  <text class="ink2" x="688" y="425" font-size="14">Keeps your files in sync across your devices.</text>
 
   <text class="muted" x="688" y="550" font-size="12">0 tells. Same layout, colors and button.</text>
 </svg>

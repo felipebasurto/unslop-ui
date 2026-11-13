@@ -20,12 +20,11 @@ export function renderWau(canvas, weeks, thisYear, lastYear) {
           display: (ctx) => ctx.dataIndex === ctx.dataset.data.length - 1,
           formatter: (value, ctx) => `${ctx.dataset.label} ${value}`,
           align: "right",
-          offset: 8,
         },
       },
       scales: {
-        x: { grid: { color: "#e5e7eb", lineWidth: 1 }, border: { display: true, width: 1, color: "#d1d5db" } },
-        y: { grid: { color: "#e5e7eb", lineWidth: 1 }, border: { display: false }, ticks: { stepSize: 25 } },
+        x: { grid: { color: "#e5e7eb", lineWidth: 1 }, border: { display: true, width: 1, color: "#e5e7eb" } },
+        y: { grid: { color: "#e5e7eb", lineWidth: 1 }, border: { display: true, width: 1, color: "#e5e7eb" }, ticks: { stepSize: 25 } },
       },
     },
   });
