@@ -205,6 +205,26 @@ EMOJI = (
     "\U00002B50\U00002B55\U0000231A-\U0000231B\U000023E9-\U000023FA]"
 )
 
+# U11: an icon in a tinted tile. A small fixed-size box with a tinted fill and
+# rounded corners whose first child is an icon. The icon-only control, an
+# avatar and a tile that also holds text are not it.
+CLASS_ATTR = re.compile(r"""class(?:Name)?\s*=\s*(?:"([^"]*)"|\{?\s*[`']([^`']*)[`']\s*\}?)""")
+TILE_FILL = re.compile(r"(?<![\w:-])bg-(?!(?:white|transparent|black)\b)[a-z]+(?:-(?:50|100|200)\b|-\d{3}/\d{1,2}\b|/\d{1,2}\b)")
+TILE_BOX = re.compile(r"(?<![\w:-])(?:size-(?:7|8|9|10|11|12)|(?:h|w)-(?:7|8|9|10|11|12))(?![\w.])")
+TILE_ROUND = re.compile(r"(?<![\w:-])rounded(?:-(?:md|lg|xl|2xl|full))?(?![\w-])")
+TILE_CHILD = re.compile(r"\s*>\s*<(?:svg\b|i\b|[A-Z]\w*\b[^<>]*/>)")
+
+
+def icon_tiles(text):
+    hits = []
+    for m in CLASS_ATTR.finditer(text):
+        classes = m.group(1) or m.group(2) or ""
+        if TILE_FILL.search(classes) and TILE_BOX.search(classes) and TILE_ROUND.search(classes):
+            if TILE_CHILD.match(text, m.end()):
+                hits.append(m.start())
+    return hits
+
+
 CHART_TYPE_TITLE = r"\b(?:bar|line|pie|area|scatter|donut|column) (?:chart|graph|plot) (?:of|showing|for)\b"
 READING_INSTRUCTIONS = r"\beach (?:bar|point|dot|line|slice|column|row) (?:represents|shows|is)\b|\bhover (?:over|for|to see)\b"
 
@@ -255,6 +275,7 @@ RULES = [
     ("U9 badge word", badge_words, MARKUP | {"data"}),
     ("U10 status dot", status_dots, MARKUP),
     ("U11 emoji", rx(EMOJI), ALL),
+    ("U11 icon tile", icon_tiles, MARKUP),
     ("U12 chart-type title", rx(CHART_TYPE_TITLE, re.I), TEXT),
     ("U13 reading instructions", once_per_line(rx(READING_INSTRUCTIONS, re.I)), TEXT),
     ("U15 chart scaffolding", rx(SCAFFOLDING), MARKUP),

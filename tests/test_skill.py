@@ -102,6 +102,20 @@ export function Legit({ rows, loading, progress }) {
 """
         self.assertEqual(count_source(source, ".tsx", "--surface")["total"], 0)
 
+    def test_counts_an_icon_in_a_tinted_tile(self):
+        tile = '<span className="grid size-10 place-items-center rounded-lg bg-sky-100"><Icon className="size-4" /></span>\n'
+        self.assertEqual(count_source(tile, ".tsx")["U11 icon tile"], 1)
+        self.assertEqual(count_source('<div class="h-9 w-9 rounded-md bg-indigo-500/10"><svg></svg></div>\n', ".html")["U11 icon tile"], 1)
+
+    def test_leaves_icon_buttons_avatars_and_tiles_with_text_alone(self):
+        source = (
+            '<button aria-label="Menu" className="size-10 rounded-lg"><MenuIcon /></button>\n'
+            '<span className="size-10 rounded-full bg-sky-100"><img src="a.png" /></span>\n'
+            '<span className="size-10 rounded-lg bg-sky-100">AB</span>\n'
+            '<span className="rounded-lg bg-sky-100 px-2">NEW</span>\n'
+        )
+        self.assertEqual(count_source(source, ".tsx")["U11 icon tile"], 0)
+
     def test_counts_a_status_dot_in_any_class_order(self):
         source = (
             '<span className="h-2 w-2 rounded-full bg-green-500" />\n'

@@ -39,9 +39,9 @@ Ids are stable. Cite them as U1 to U20 in the report.
 
 ### Interface copy
 
-- **U1. Eyebrow labels.** Small uppercase or letter-spaced text above a heading ("PASSPORT", "FEATURES", "HOW IT WORKS"). Delete it. The heading already says what the section is.
+- **U1. Eyebrow labels.** Small uppercase or letter-spaced text above a heading ("PASSPORT", "FEATURES", "HOW IT WORKS"). It also comes as a pill or chip, often with a dot ("● POLAR EXPEDITIONS"), and as a caption over a menu or dropdown list ("POPULAR DESTINATIONS"). Delete it. The heading already says what the section is.
 - **U2. Decorative numbering.** "01 02 03", "01 // Features", "§", "//" prefixes. Delete unless the order is real and the user follows it (steps of a checkout, a numbered install guide).
-- **U3. Subtitle reflex.** A subtitle under every heading, or a line above the H1. Keep one only when it states a fact the heading doesn't. "Analytics / Understand your data better" loses the second line.
+- **U3. Subtitle reflex.** A subtitle under every heading, or a line above the H1. Keep one only when it states a fact the heading doesn't. "Analytics / Understand your data better" loses the second line. The same goes for a blurb under every item of a menu, dropdown or card list ("Greenland / Discover majestic ice fjords"): keep it only when the names alone can't tell the items apart (plan tiers, settings), and then only for the items that need it.
 - **U4. Botsplaining.** Captions, helper text and descriptions that narrate what the element visibly does ("Click the button below to get started", "This chart shows revenue over time"). Delete. Empty states, error messages and confirmations of destructive actions are not deleted, but they are edited: one or two plain sentences that say what happened and what to do next, without "Oops!" or an exclamation mark.
 - **U5. Leaked design notes.** Text about how the screen works or why it was designed that way, long parentheticals, "(updates in real time)", "(powered by AI)". Delete it, or move it to a tooltip if a user would genuinely look for it.
 - **U6. Status strings.** Facts chained with "·" or "|" ("12 items · Updated 2m ago · Synced · v2.1"). Keep the one fact the user acts on. Put others where they're needed, or drop them. A fact that claims live state ("Synced", "All systems operational") has to pass the real-state test under Decoration, or it goes.
@@ -56,7 +56,7 @@ The test for real state, in U6, U9 and U10: the element renders from a condition
 
 - **U9. Badges and pills without real state.** "LIVE", "NEW", "AI", "Beta", "Pro", "🔥 Popular" added for flavor. Keep a badge only if it reflects data the app actually tracks (a real stream is live, an item is actually new since the last visit).
 - **U10. Status dots.** Pulsing or colored dots (`animate-pulse`, small `rounded-full` dots) next to text. Keep only if bound to a real live status. A loading skeleton that pulses is not a status dot.
-- **U11. Decorative emojis and icons.** In headings, buttons, KPI labels and feature lists, including the icon in a tinted square above each feature card. Delete. An icon stays if it is the control itself (icon button with an `aria-label`), if it carries meaning the text does not, or if it sits in a navigation, menu or toolbar where every item has one.
+- **U11. Decorative emojis and icons.** In headings, buttons, KPI labels and feature lists, including the icon in a tinted square above each feature card. Delete. An icon stays if it is the control itself (icon button with an `aria-label`), if it carries meaning the text does not, or if it sits in a toolbar or in a menu of actions (edit, copy, delete) where every item has one. A menu of destinations or pages whose icons are generic pictographs (a mountain for Svalbard, a compass for Greenland) is decoration: the icon says nothing the name does not. An icon in a tinted, rounded box is the same tell and goes with its box; delete the wrapper too.
 
 ### Charts and dashboards
 
@@ -105,7 +105,7 @@ Copy this checklist and track it:
 - [ ] 7. Report
 ```
 
-**Count.** The counter is a regex heuristic. It finds candidates and gives a before/after number. It cannot see U3, U4, U5, U7, U8 or U14, which need reading, and it sees only the common code forms of U12, U13, U15 and U16. With `--surface` it also counts U17 to U20; it cannot tell a hue-to-hue gradient from a tone shift inside one neutral. It flags legitimate cases too. A count above 0 after editing is fine when every remaining hit is one you kept on purpose. Never delete something legitimate to reach 0. Your reading in step 2 is the real check.
+**Count.** The counter is a regex heuristic. It finds candidates and gives a before/after number. It cannot see U3, U4, U5, U7, U8 or U14, which need reading, and it sees only the common code forms of U12, U13, U15 and U16. For U11 it counts emojis and Tailwind-style icon tiles, not icons in other markup. With `--surface` it also counts U17 to U20; it cannot tell a hue-to-hue gradient from a tone shift inside one neutral. It flags legitimate cases too. A count above 0 after editing is fine when every remaining hit is one you kept on purpose. Never delete something legitimate to reach 0. Your reading in step 2 is the real check.
 
 **Verdict**, from the count and your reading:
 

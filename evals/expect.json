@@ -67,5 +67,23 @@
         "no_new_numbers": true
       }
     }
+  },
+  "nav-menu": {
+    "why": "Menu decoration goes (caption, pictograph tiles, a blurb under every item, the dot pill); the links, names and the icon button that is a control stay.",
+    "files": {
+      "Header.tsx": {
+        "keep": [
+          "Svalbard", "Greenland", "Iceland", "Antarctica", "View all destinations",
+          "aria-label=\"Open menu\"", "MenuIcon", "href={href}", "Begin your journey",
+          "Explore voyages", "Discover Untamed Wilderness", "Small-ship voyages"
+        ],
+        "cut": [
+          "uppercase tracking-widest", "Popular destinations", "Polar expeditions", "bg-sky-100", "bg-sky-500",
+          "Explore the Arctic's crown jewel", "Discover majestic ice fjords", "The land of fire and ice",
+          "The last great wilderness", "Snowflake", "Compass"
+        ],
+        "no_new_numbers": true
+      }
+    }
   }
 }

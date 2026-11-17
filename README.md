@@ -18,9 +18,9 @@ It is the interface companion to [`/pstack:unslop`](https://github.com/cursor/pl
 
 | Id | Pattern | Example |
 |---|---|---|
-| U1 | Eyebrow labels | `INTRODUCING LEDGER` above the H1 |
+| U1 | Eyebrow labels | `INTRODUCING LEDGER` above the H1, or a `● POLAR EXPEDITIONS` pill |
 | U2 | Decorative numbering | `01 //`, `02 //` on features with no real order |
-| U3 | Subtitle reflex | "Analytics" with "Understand your data better" under it |
+| U3 | Subtitle reflex | "Analytics" with "Understand your data better" under it, or a blurb under every menu item |
 | U4 | Botsplaining | "Click the button above to get started" |
 | U5 | Leaked design notes | "(updates in real time)", "This card shows..." |
 | U6 | Status strings | `Live · v2.4 · Synced · Updated just now` |
@@ -28,7 +28,7 @@ It is the interface companion to [`/pstack:unslop`](https://github.com/cursor/pl
 | U8 | Staccato slogans | "Finance. Simplified. Finally." |
 | U9 | Badges without state | `NEW`, `AI`, `Beta` added for flavor |
 | U10 | Status dots | `animate-pulse` dot next to static data |
-| U11 | Decorative emojis | `🚀 Get started`, `💰 Revenue` |
+| U11 | Decorative emojis and icons | `🚀 Get started`, an icon in a tinted square beside every menu item |
 | U12 | Chart titles that name the chart | "Line chart of weekly active users" |
 | U13 | Reading instructions | "Each point represents one week. Hover for details." |
 | U14 | Saying it twice | A value on every point plus axis plus gridlines; `▲ 12% up` plus "Revenue grew 12%..." |
@@ -202,7 +202,7 @@ The table counts what was found and what is left. "Rewritten" lists every string
 
 ## The counter
 
-`scripts/count_tells.py` is a regex counter for the patterns that can be found mechanically: U1, U2, U6, U9, U10, U11, em dashes, and the common code forms of U12, U13, U15 and U16 (a title that names the chart type, "hover over", shadows, thick axis borders and gridlines, legends turned on). With `--surface` it also counts U17 to U20. The skill runs it before and after editing. You can run it on its own, and `--max` makes it fail a CI job:
+`scripts/count_tells.py` is a regex counter for the patterns that can be found mechanically: U1, U2, U6, U9, U10, U11 (emojis and icon tiles), em dashes, and the common code forms of U12, U13, U15 and U16 (a title that names the chart type, "hover over", shadows, thick axis borders and gridlines, legends turned on). With `--surface` it also counts U17 to U20. The skill runs it before and after editing. You can run it on its own, and `--max` makes it fail a CI job:
 
 ```bash
 python3 skills/unslop-ui/scripts/count_tells.py src/
