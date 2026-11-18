@@ -237,6 +237,8 @@ claude plugin marketplace add felipebasurto/unslop-ui
 claude plugin install unslop-ui@unslop-ui
 ```
 
+The plugin lives in [`plugins/unslop-ui`](plugins/unslop-ui). It is instructions only, with no scripts or shell commands, so it can pass the Claude plugin directory's checks. It counts tells with the Grep patterns in [`finding-tells.md`](plugins/unslop-ui/skills/unslop-ui/references/finding-tells.md) instead of `count_tells.py`. The rules in both builds are the same, and a test keeps them in step.
+
 By hand:
 
 ```bash
@@ -250,7 +252,7 @@ Optional: install [pstack](https://github.com/cursor/plugins/tree/main/pstack) s
 
 | Agent | Invoke with | Notes |
 |---|---|---|
-| Claude Code | `/unslop-ui` (plugin: `/unslop-ui:unslop-ui`) | Full support: loads unslop rules automatically, takes arguments |
+| Claude Code | `/unslop-ui` (plugin: `/unslop-ui:unslop-ui`) | Full support: loads unslop rules automatically, takes arguments. The plugin build counts with Grep, not the script |
 | Cursor | `/unslop-ui` | Works. Run `scripts/load_unslop.py` yourself if the unslop rules don't appear |
 | Codex | `$unslop-ui` | Works, explicit invocation only (`agents/openai.yaml`) |
 | Any other agent | "Follow `skills/unslop-ui/SKILL.md` on `<target>`" | See [For agents](#for-agents) |

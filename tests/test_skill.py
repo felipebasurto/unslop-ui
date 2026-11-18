@@ -12,6 +12,8 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SKILL = os.path.join(ROOT, "skills", "unslop-ui")
 COUNTER = os.path.join(SKILL, "scripts", "count_tells.py")
 LOADER = os.path.join(SKILL, "scripts", "load_unslop.py")
+PLUGIN = os.path.join(ROOT, "plugins", "unslop-ui")
+PLUGIN_SKILL = os.path.join(PLUGIN, "skills", "unslop-ui")
 
 _spec = importlib.util.spec_from_file_location("evals_run", os.path.join(ROOT, "evals", "run.py"))
 evals_run = importlib.util.module_from_spec(_spec)
@@ -372,6 +374,72 @@ class EvalFixturesTest(unittest.TestCase):
         self.assertEqual(evals_run.check_file("a 12", "a 12 b", {"unchanged": True}), ["changed, expected no edit"])
         failures = evals_run.check_file("keep cut 12", "cut 12 in 3 seconds", {"keep": ["keep"], "cut": ["cut"], "no_new_numbers": True})
         self.assertEqual(failures, ["lost 'keep'", "still has 'cut'", "new numbers 3"])
+
+
+ALLOWED_PLUGIN_SUFFIXES = {".md", ".txt", ".json", ".yaml", ".yml", ".png", ".jpg", ".jpeg", ".gif", ".webp", ".ico"}
+
+
+def read_text(*parts):
+    with open(os.path.join(*parts), encoding="utf-8") as f:
+        return f.read()
+
+
+def between(text, start, end):
+    return text[text.index(start):text.index(end)]
+
+
+class PluginTest(unittest.TestCase):
+    """The Claude plugin directory refuses scripts, inline shell and broad allowed-tools."""
+
+    def plugin_files(self):
+        for folder, _, names in os.walk(PLUGIN):
+            for name in names:
+                yield os.path.join(folder, name)
+
+    def test_ships_only_text_and_images(self):
+        for path in self.plugin_files():
+            suffix = os.path.splitext(path)[1].lower()
+            if os.path.basename(path) == "LICENSE":
+                continue
+            self.assertIn(suffix, ALLOWED_PLUGIN_SUFFIXES, path)
+            with open(path, "rb") as f:
+                data = f.read()
+            self.assertFalse(data.startswith(b"#!"), path)
+            self.assertNotIn(b"\x00", data, path)
+
+    def test_skill_has_no_inline_shell_and_minimal_tools(self):
+        text = read_text(PLUGIN_SKILL, "SKILL.md")
+        self.assertNotIn("!`", text)
+        self.assertNotIn("```!", text)
+        self.assertNotIn("${", text)
+        self.assertIn("allowed-tools: Read, Grep, Glob, LS\n", text)
+
+    def test_manifest_and_marketplace_agree(self):
+        manifest = json.loads(read_text(PLUGIN, ".claude-plugin", "plugin.json"))
+        marketplace = json.loads(read_text(ROOT, ".claude-plugin", "marketplace.json"))
+        self.assertEqual(manifest["name"], "unslop-ui")
+        self.assertEqual(marketplace["plugins"][0]["source"], "./plugins/unslop-ui")
+        self.assertTrue(os.path.isdir(os.path.join(ROOT, marketplace["plugins"][0]["source"])))
+
+    def test_rules_match_the_skill_build(self):
+        for start, end in [("## UI rules", "## Guardrails"), ("## Cut first", "## UI rules"), ("## Guardrails", "## Procedure")]:
+            self.assertEqual(
+                between(read_text(SKILL, "SKILL.md"), start, end),
+                between(read_text(PLUGIN_SKILL, "SKILL.md"), start, end),
+                start,
+            )
+        for name in ("examples.md", "tokens.md", "unslop-fallback.md"):
+            self.assertEqual(read_text(SKILL, "references", name), read_text(PLUGIN_SKILL, "references", name), name)
+
+    def test_links_exist(self):
+        text = read_text(PLUGIN_SKILL, "SKILL.md")
+        for target in re.findall(r"\]\((references/[^)]+)\)", text):
+            self.assertTrue(os.path.exists(os.path.join(PLUGIN_SKILL, target)), target)
+
+    def test_every_counted_rule_has_a_search_pattern(self):
+        patterns = read_text(PLUGIN_SKILL, "references", "finding-tells.md")
+        for rule in ["U1", "U2", "U6", "U9", "U10", "U11", "U12", "U13", "U15", "U16", "U17", "U18", "U19", "U20", "unslop 13"]:
+            self.assertIn("**" + rule + " ", patterns)
 
 
 if __name__ == "__main__":
