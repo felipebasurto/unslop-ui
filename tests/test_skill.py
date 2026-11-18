@@ -376,7 +376,8 @@ class EvalFixturesTest(unittest.TestCase):
         self.assertEqual(failures, ["lost 'keep'", "still has 'cut'", "new numbers 3"])
 
 
-ALLOWED_PLUGIN_SUFFIXES = {".md", ".txt", ".json", ".yaml", ".yml", ".png", ".jpg", ".jpeg", ".gif", ".webp", ".ico"}
+IMAGE_SUFFIXES = {".png", ".jpg", ".jpeg", ".gif", ".webp", ".ico"}
+ALLOWED_PLUGIN_SUFFIXES = {".md", ".txt", ".json", ".yaml", ".yml"} | IMAGE_SUFFIXES
 
 
 def read_text(*parts):
@@ -405,7 +406,8 @@ class PluginTest(unittest.TestCase):
             with open(path, "rb") as f:
                 data = f.read()
             self.assertFalse(data.startswith(b"#!"), path)
-            self.assertNotIn(b"\x00", data, path)
+            if suffix not in IMAGE_SUFFIXES:
+                self.assertNotIn(b"\x00", data, path)
 
     def test_skill_has_no_inline_shell_and_minimal_tools(self):
         text = read_text(PLUGIN_SKILL, "SKILL.md")
