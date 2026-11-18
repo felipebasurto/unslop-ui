@@ -1,4 +1,6 @@
-<h1 align="center">unslop-ui</h1>
+<p align="center">
+  <img src="assets/banner.png" width="100%" alt="unslop-ui: a Share Workspace sheet before and after /unslop-ui">
+</p>
 
 <p align="center">An agent skill that strips the AI look out of interface and chart copy, and optionally its visual surface.</p>
 
@@ -7,6 +9,12 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT license"></a>
   <a href="https://agentskills.io"><img src="https://img.shields.io/badge/format-Agent%20Skills-555" alt="Agent Skills format"></a>
 </p>
+
+<p align="center">
+  <a href="assets/video/unslop-ui-steps.mp4"><img src="assets/demo.gif" width="720" alt="Five changes to a Share Workspace sheet, one at a time"></a>
+</p>
+
+<p align="center">Five changes to one sheet, one at a time. <a href="assets/video/unslop-ui-steps.mp4">Watch the MP4</a>. The before and after live in <a href="examples/share-workspace"><code>examples/share-workspace</code></a>.</p>
 
 ![A landing page with eleven AI tells tagged by rule id, next to the same page after /unslop-ui](assets/anatomy.svg)
 

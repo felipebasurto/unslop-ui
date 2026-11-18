@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agent slop, step by step: Share Workspace</title>
+<link rel="stylesheet" href="../blueprint/blueprint.css">
+<style>
+  /* Steps reuse the blueprint palette and sheet styles from ../blueprint/blueprint.css */
+  #canvas .sheet { left: 470px; top: 150px; }
+  #heading { top: 26px; }
+  #caption {
+    position: absolute;
+    left: 40px;
+    right: 40px;
+    top: 56px;
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--ink);
+    max-width: 900px;
+  }
+  #caption b { color: var(--lime); font-weight: 600; }
+  #ann, #log { position: absolute; top: 200px; width: 290px; }
+  #ann { left: 40px; }
+  #log { left: 950px; }
+  .ann {
+    position: absolute;
+    left: 0;
+    width: 290px;
+    padding: 8px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    line-height: 1.4;
+    box-sizing: border-box;
+  }
+  .ann b { font-family: var(--mono); font-size: 11px; display: block; margin-bottom: 2px; }
+  .ann--rule { background: var(--lime); color: #0c2a5e; }
+  .ann--keep { background: transparent; color: var(--ink); outline: 1px solid var(--ink); }
+  .log-item {
+    position: relative;
+    padding: 0 0 12px 22px;
+    font-size: 12px;
+    line-height: 1.45;
+    color: var(--ink);
+  }
+  .log-item::before {
+    content: "\2713";
+    position: absolute;
+    left: 0;
+    top: 0;
+    font-family: var(--mono);
+    color: var(--lime);
+  }
+  .log-item span { display: block; font-family: var(--mono); font-size: 11px; color: var(--dim); }
+  #log h3, #ann h3 {
+    margin: 0 0 14px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .08em;
+    font-weight: 600;
+    color: var(--dim);
+  }
+  #nav {
+    position: absolute;
+    right: 40px;
+    bottom: 26px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--ink);
+  }
+  #nav button {
+    font: inherit;
+    padding: 6px 12px;
+    margin-left: 6px;
+    border: 1px solid var(--ink);
+    border-radius: 4px;
+    background: transparent;
+    color: var(--ink);
+    cursor: pointer;
+  }
+  #nav button:disabled { opacity: .35; cursor: default; }
+  body.export #nav { display: none; }
+  #dims line.lead { stroke: var(--ink); stroke-width: 1; stroke-dasharray: 3 3; opacity: .7; }
+  #dims line.lead--rule { stroke: var(--lime); opacity: 1; stroke-dasharray: none; stroke-width: 1.5; }
+  #dims circle.dot { fill: var(--lime); }
+  #dims circle.dot--keep { fill: var(--ink); }
+  #legend { bottom: 26px; }
+</style>
+</head>
+<body>
+<div id="canvas">
+  <div id="heading" class="corner">PLAN 02 &middot; SHARE WORKSPACE <span id="stepno"></span></div>
+  <div id="caption"></div>
+
+  <div id="ann"><h3>PATTERNS ON THIS SHEET</h3></div>
+  <div id="sheet-slot"></div>
+  <svg id="dims" width="1280" height="720" viewBox="0 0 1280 720" aria-hidden="true"></svg>
+  <div id="log"><h3>ALREADY CORRECTED</h3></div>
+
+  <div id="legend" class="corner">
+    U1&ndash;U20 are unslop-ui rule ids (see README)<br>
+    Lime = cut &middot; white dashed = kept on purpose
+  </div>
+
+  <div id="nav">
+    <button id="prev" type="button">&larr; prev</button>
+    <span id="pos"></span>
+    <button id="next" type="button">next &rarr;</button>
+  </div>
+</div>
+
+<script>
+(function () {
+  var NS = 'http://www.w3.org/2000/svg';
+
+  // The screen as an agent wrote it, and the flags that each step turns off.
+  var STEPS = [
+    { flags: { invite: true, icon: true, footer: true, merged: false }, title: 'Start: the screen as an agent wrote it',
+      text: 'Four patterns to cut and two lines that stay. Each lime line points at a pattern the rules remove; dashed white lines are kept on purpose.' },
+    { flags: { invite: false, icon: true, footer: true, merged: false }, title: 'Step 1 &middot; U4 botsplaining',
+      text: '<b>Cut the paragraph that narrates the sheet.</b> "Invite people to Open shared workspace links" describes what the buttons already do. The one fact in it that matters, "anyone with this link can join", is a separate line and stays.' },
+    { flags: { invite: false, icon: false, footer: true, merged: false }, title: 'Step 2 &middot; U11 decorative icon',
+      text: '<b>Remove the upload icon.</b> The button already says what it does. An icon in front of a label is decoration unless it is the control itself.' },
+    { flags: { invite: false, icon: false, footer: false, merged: false }, title: 'Step 3 &middot; U5 leaked note',
+      text: '<b>Cut the footer note.</b> "Use Intent on your Mac" explains how the product works. If people need it, it belongs in settings or docs, not on a share sheet. It is a task for the owner, not a line in the UI.' },
+    { flags: { invite: false, icon: false, footer: false, merged: true }, title: 'Step 4 &middot; duplicate state',
+      text: '<b>"Copied" is not a second button.</b> It is what Copy link shows after a click. Fold them into one control. "Send Invite Link" becomes "Send link": the title already says share, so the word "Invite" is repeated.' },
+    { flags: { invite: false, icon: false, footer: false, merged: true }, title: 'Final &middot; what stays on purpose',
+      text: '<b>Keep the expiry line.</b> "It expires next week" is a claim the code can check, and people act on it. <b>Keep the close button’s aria-label.</b> Without visible text it is the only name the control has. Result: examples/share-workspace/after.html.' }
+  ];
+
+  // Each pattern: which flag makes it active, its rule, and the element it points at.
+  var PATTERNS = [
+    { id: 'invite', rule: 'U4 botsplaining', text: 'narrates what the sheet does', target: '#a-invite', active: function (f) { return f.invite; },
+      done: 'Removed U4: the paragraph that narrates the sheet' },
+    { id: 'icon', rule: 'U11 decorative icon', text: 'upload icon in front of a label that already says it', target: '#a-send-icon', active: function (f) { return f.icon && !f.merged; },
+      done: 'Removed U11: the upload icon on the send button' },
+    { id: 'footer', rule: 'U5 leaked note', text: 'explains how the product works; move to docs', target: '#a-footer', active: function (f) { return f.footer; },
+      done: 'Removed U5: the footer note (task: docs or settings)' },
+    { id: 'merged', rule: 'STATE duplicate', text: '"Copied" is a state of Copy link, not a control', target: '#a-copied', active: function (f) { return !f.merged; },
+      done: 'Folded "Copied" into Copy link; "Send Invite Link" is now "Send link"' }
+  ];
+  var KEEPS = [
+    { rule: 'KEEP real expiry', text: 'a claim the code can check', target: '#a-expiry' },
+    { rule: 'KEEP aria-label', text: 'names the close control', target: '#a-close' }
+  ];
+
+  function sheetHTML(f) {
+    var h = '<section class="sheet">' +
+      '<div class="grabber"></div>' +
+      '<header class="sheet-head"><button class="close" id="a-close" type="button" aria-label="Close">&#10005;</button>' +
+      '<h2 class="title">Share Workspace</h2></header>';
+    if (f.invite) h += '<p class="copy" id="a-invite">Invite people to Open shared workspace links. They join by opening the link you send them.</p>';
+    h += '<p class="copy" id="a-expiry">Anyone with this link can join. It expires next week.</p>';
+    if (f.merged) {
+      h += '<button class="btn btn--primary" type="button">Send link</button>';
+      h += '<button class="btn" id="a-copy" type="button">Copy link</button>';
+    } else {
+      h += '<button class="btn btn--primary" type="button">' +
+        (f.icon ? '<svg id="a-send-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 11V2M4.5 5.5 8 2l3.5 3.5M2.5 10v3.5h11V10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>' : '') +
+        'Send Invite Link</button>';
+      h += '<button class="btn" id="a-copied" type="button">Copied</button>';
+    }
+    h += '<button class="btn" type="button">Create Another Link</button>';
+    if (f.footer) h += '<p class="foot" id="a-footer">To remove people or turn off a link, use Intent on your Mac.</p>';
+    return h + '</section>';
+  }
+
+  function el(name, attrs, parent) {
+    var n = document.createElementNS(NS, name);
+    Object.keys(attrs).forEach(function (k) { n.setAttribute(k, attrs[k]); });
+    if (parent) parent.appendChild(n);
+    return n;
+  }
+
+  function render(i) {
+    var step = STEPS[i], f = step.flags;
+    document.getElementById('stepno').textContent = '· STEP ' + i + ' / ' + (STEPS.length - 1);
+    document.getElementById('caption').innerHTML = '<span style="color:var(--dim)">' + step.title + '</span><br>' + step.text;
+    document.getElementById('sheet-slot').innerHTML = sheetHTML(f);
+
+    var canvas = document.getElementById('canvas');
+    var svg = document.getElementById('dims');
+    Array.prototype.slice.call(svg.children).forEach(function (n) { n.parentNode.removeChild(n); });
+    var ann = document.getElementById('ann');
+    Array.prototype.slice.call(ann.querySelectorAll('.ann')).forEach(function (n) { n.parentNode.removeChild(n); });
+    var log = document.getElementById('log');
+    Array.prototype.slice.call(log.querySelectorAll('.log-item')).forEach(function (n) { n.parentNode.removeChild(n); });
+
+    var c = canvas.getBoundingClientRect();
+    function center(sel) {
+      var n = document.querySelector(sel);
+      if (!n) return null;
+      var r = n.getBoundingClientRect();
+      return { l: r.left - c.left, t: r.top - c.top, cy: (r.top + r.bottom) / 2 - c.top };
+    }
+
+    // Active patterns (left column, lime) and kept lines (dashed).
+    var items = [];
+    PATTERNS.forEach(function (p) { if (p.active(f)) items.push({ kind: 'rule', p: p }); });
+    KEEPS.forEach(function (k) { items.push({ kind: 'keep', p: k }); });
+
+    // Sort by where each element sits, then stack the labels in fixed rows so lines don't cross.
+    items.forEach(function (it) { it.t = center(it.p.target); });
+    items = items.filter(function (it) { return it.t; });
+    items.sort(function (a, b) { return a.t.cy - b.t.cy; });
+
+    items.forEach(function (it, row) {
+      var t = it.t;
+      var y = 240 + row * 60;                       // top of this label box, below the column title
+      var box = document.createElement('div');
+      box.className = 'ann ann--' + it.kind;
+      box.style.top = (y - 200) + 'px';
+      box.innerHTML = '<b>' + it.p.rule + '</b>' + it.p.text;
+      ann.appendChild(box);
+      // leader: from the box edge (mid-height) to the element's left edge, on the element's centre line
+      el('line', { class: 'lead' + (it.kind === 'rule' ? ' lead--rule' : ''),
+        x1: 330, y1: y + 24, x2: t.l - 2, y2: t.cy }, svg);
+      el('circle', { class: 'dot' + (it.kind === 'keep' ? ' dot--keep' : ''), cx: t.l - 2, cy: t.cy, r: 3 }, svg);
+    });
+
+    // Corrected items (right column), up to the current step.
+    var done = [];
+    for (var s = 1; s <= i; s++) {
+      var prev = STEPS[s - 1].flags, cur = STEPS[s].flags;
+      PATTERNS.forEach(function (p) {
+        if (p.active(prev) && !p.active(cur)) done.push(p.done);
+      });
+    }
+    if (i === STEPS.length - 1) done.push('Kept: expiry line and the close button’s aria-label');
+    done.forEach(function (text) {
+      var d = document.createElement('div');
+      d.className = 'log-item';
+      d.textContent = text;
+      log.appendChild(d);
+    });
+
+    document.getElementById('pos').textContent = (i + 1) + ' / ' + STEPS.length;
+    document.getElementById('prev').disabled = i === 0;
+    document.getElementById('next').disabled = i === STEPS.length - 1;
+  }
+
+  var current = 0;
+  function go(i) {
+    current = Math.max(0, Math.min(STEPS.length - 1, i));
+    history.replaceState(null, '', '#' + current);
+    render(current);
+  }
+  document.getElementById('prev').onclick = function () { go(current - 1); };
+  document.getElementById('next').onclick = function () { go(current + 1); };
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowRight') go(current + 1);
+    if (e.key === 'ArrowLeft') go(current - 1);
+  });
+
+  // Export mode: ?export hides the navigation, so each plate can be screenshotted.
+  if (location.search.indexOf('export') !== -1) document.body.classList.add('export');
+  var start = parseInt(location.hash.slice(1), 10);
+  go(isNaN(start) ? 0 : start);
+  window.goStep = go;
+})();
+</script>
+</body>
+</html>

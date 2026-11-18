@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Share Workspace, blueprint</title>
+<link rel="stylesheet" href="blueprint.css">
+</head>
+<body>
+<div id="canvas">
+  <div id="heading" class="corner">PLAN 01 &middot; SHARE WORKSPACE <span>&middot; before the slop cut</span></div>
+
+  <div id="sheet-slot"></div>
+  <svg id="dims" width="1280" height="720" viewBox="0 0 1280 720" aria-hidden="true"></svg>
+  <div id="tags"></div>
+
+  <div id="legend" class="corner">
+    U1&ndash;U20 are unslop-ui rule ids (see README)<br>
+    KEEP = stays on purpose &middot; dimensions read from the rendered DOM
+  </div>
+
+  <div id="titleblock" class="corner">
+    PROJECT <b>unslop-ui</b><br>
+    DRAWING <b>SHARE WORKSPACE</b><br>
+    STATE <b id="state">BEFORE</b> &middot; UNITS CSS PX &middot; SCALE 1:1<br>
+    SHEET 01/01 &middot; REV A
+  </div>
+</div>
+
+<!-- BEFORE: mirrors examples/share-workspace/before.html, with the tags and cut marks -->
+<template id="tpl-before">
+  <section class="sheet" aria-labelledby="t-before">
+    <div class="grabber"></div>
+    <header class="sheet-head">
+      <button class="close" type="button" aria-label="Close" data-tag="KEEP|aria-label on the close control">&#10005;</button>
+      <h2 class="title" id="t-before">Share Workspace</h2>
+    </header>
+    <p class="copy" data-tag="U4|botsplaining: narrates what the sheet does" data-cut>Invite people to Open shared workspace links. They join by opening the link you send them.</p>
+    <p class="copy" data-tag="KEEP|real expiry: a claim the code can check">Anyone with this link can join. It expires next week.</p>
+    <button class="btn btn--primary" type="button"><svg viewBox="0 0 16 16" aria-hidden="true" data-tag="U11|decorative icon: delete" data-cut><path d="M8 11V2M4.5 5.5 8 2l3.5 3.5M2.5 10v3.5h11V10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Send Invite Link</button>
+    <button class="btn" type="button" data-tag="STATE|copy button's state: fold into one button" data-cut>Copied</button>
+    <button class="btn" type="button">Create Another Link</button>
+    <p class="foot" data-tag="U5|leaked note: move to docs, not the sheet" data-cut>To remove people or turn off a link, use Intent on your Mac.</p>
+  </section>
+</template>
+
+<!-- AFTER: mirrors examples/share-workspace/after.html -->
+<template id="tpl-after">
+  <section class="sheet" aria-labelledby="t-after">
+    <div class="grabber"></div>
+    <header class="sheet-head">
+      <button class="close" type="button" aria-label="Close">&#10005;</button>
+      <h2 class="title" id="t-after">Share Workspace</h2>
+    </header>
+    <p class="copy">Anyone with this link can join. It expires next week.</p>
+    <button class="btn btn--primary" type="button">Send link</button>
+    <button class="btn" type="button">Copy link</button>
+    <button class="btn" type="button">Create Another Link</button>
+  </section>
+</template>
+
+<script src="blueprint.js"></script>
+<script>Blueprint.mount('before');</script>
+</body>
+</html>

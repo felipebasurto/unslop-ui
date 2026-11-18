@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>unslop-ui, before and after</title>
+<link rel="stylesheet" href="blueprint.css">
+<style>
+  /* Video-only layers. Opacity is driven by setT(), frame by frame. */
+  #verdict {
+    position: absolute;
+    left: 40px;
+    top: 50px;
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: .06em;
+    color: var(--lime);
+    opacity: 0;
+  }
+  .overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    background: #0e0f10;
+    color: #f4f4f2;
+    text-align: center;
+    font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+    z-index: 10;
+  }
+  #intro { opacity: 1; }
+  #outro { opacity: 0; }
+  .overlay img { width: 96px; height: 96px; }
+  .overlay h1 { margin: 0; font-size: 56px; font-weight: 600; letter-spacing: -.02em; }
+  .overlay p { margin: 0; font-size: 22px; color: #a9ada9; }
+  .overlay .cmd {
+    margin-top: 10px;
+    font-family: var(--mono);
+    font-size: 24px;
+    color: var(--lime);
+  }
+</style>
+</head>
+<body>
+<div id="canvas">
+  <div id="heading" class="corner">PLAN 01 &middot; SHARE WORKSPACE</div>
+  <div id="verdict">VERDICT light &middot; 3 cut &middot; 2 kept &middot; 1 state folded into one button</div>
+
+  <div id="sheet-slot"></div>
+  <svg id="dims" width="1280" height="720" viewBox="0 0 1280 720" aria-hidden="true"></svg>
+  <div id="tags"></div>
+
+  <div id="legend" class="corner">
+    U1&ndash;U20 are unslop-ui rule ids (see README)<br>
+    KEEP = stays on purpose &middot; dimensions read from the rendered DOM
+  </div>
+
+  <div id="titleblock" class="corner">
+    PROJECT <b>unslop-ui</b><br>
+    DRAWING <b>SHARE WORKSPACE</b><br>
+    STATE <b id="state">BEFORE</b> &middot; UNITS CSS PX &middot; SCALE 1:1<br>
+    SHEET 01/01 &middot; REV A
+  </div>
+</div>
+
+<div id="intro" class="overlay">
+  <img src="../logo.svg" alt="">
+  <h1>unslop-ui</h1>
+  <p>Same screen. Before and after.</p>
+</div>
+
+<div id="outro" class="overlay">
+  <img src="../logo.svg" alt="">
+  <h1>Same screen. Only what you act on.</h1>
+  <p class="cmd">/unslop-ui</p>
+</div>
+
+<!-- BEFORE: mirrors examples/share-workspace/before.html, with tags and cut marks -->
+<template id="tpl-before">
+  <section class="sheet" aria-labelledby="t-before">
+    <div class="grabber"></div>
+    <header class="sheet-head">
+      <button class="close" type="button" aria-label="Close" data-tag="KEEP|aria-label on the close control">&#10005;</button>
+      <h2 class="title" id="t-before">Share Workspace</h2>
+    </header>
+    <p class="copy" data-tag="U4|botsplaining: narrates what the sheet does" data-cut>Invite people to Open shared workspace links. They join by opening the link you send them.</p>
+    <p class="copy" data-tag="KEEP|real expiry: a claim the code can check">Anyone with this link can join. It expires next week.</p>
+    <button class="btn btn--primary" type="button"><svg viewBox="0 0 16 16" aria-hidden="true" data-tag="U11|decorative icon: delete" data-cut><path d="M8 11V2M4.5 5.5 8 2l3.5 3.5M2.5 10v3.5h11V10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Send Invite Link</button>
+    <button class="btn" type="button" data-tag="STATE|copy button's state: fold into one button" data-cut>Copied</button>
+    <button class="btn" type="button">Create Another Link</button>
+    <p class="foot" data-tag="U5|leaked note: move to docs, not the sheet" data-cut>To remove people or turn off a link, use Intent on your Mac.</p>
+  </section>
+</template>
+
+<!-- AFTER: mirrors examples/share-workspace/after.html -->
+<template id="tpl-after">
+  <section class="sheet" aria-labelledby="t-after">
+    <div class="grabber"></div>
+    <header class="sheet-head">
+      <button class="close" type="button" aria-label="Close">&#10005;</button>
+      <h2 class="title" id="t-after">Share Workspace</h2>
+    </header>
+    <p class="copy">Anyone with this link can join. It expires next week.</p>
+    <button class="btn btn--primary" type="button">Send link</button>
+    <button class="btn" type="button">Copy link</button>
+    <button class="btn" type="button">Create Another Link</button>
+  </section>
+</template>
+
+<script src="blueprint.js"></script>
+<script>
+  // Frame-accurate timeline: the capture script calls setT(ms) for each frame.
+  // 0.0-1.4 intro · 2.2 dims · 3.6 rule tags · 4.2 specs · 6.0 cut · 7.0 after · 7.6 verdict · 9.8 outro
+  (function () {
+    var phase = null;
+    function E(x) { return Math.max(0, Math.min(1, x)); }
+    function $(s) { return document.querySelector(s); }
+    function $$(s) { return Array.prototype.slice.call(document.querySelectorAll(s)); }
+
+    window.setT = function (ms) {
+      var t = ms / 1000;
+      var want = t >= 7 ? 'after' : 'before';
+      if (want !== phase) { Blueprint.mount(want); phase = want; }
+
+      $('#intro').style.opacity = String(1 - E((t - 1.2) / 0.4));
+      $('#outro').style.opacity = String(E((t - 9.8) / 0.4));
+      $('#canvas').style.opacity = String(E((t - 1.2) / 0.4) * (1 - E((t - 9.4) / 0.3)));
+
+      var before = want === 'before';
+      $('#dims').style.opacity = String(E((t - (before ? 2.2 : 7.0)) / 0.5));
+
+      $$('.tag').forEach(function (tag, i) {
+        tag.style.opacity = String(E((t - (3.6 + i * 0.35)) / 0.3));
+      });
+      $$('.tag-leader').forEach(function (l, i) {
+        l.style.opacity = String(0.55 * E((t - (3.6 + i * 0.35)) / 0.3));
+      });
+
+      var specOp = before ? E((t - 4.2) / 0.4) * (1 - E((t - 6.5) / 0.4)) : 0;
+      $$('#dims .spec, #dims .spec-leader').forEach(function (n) { n.style.opacity = String(specOp); });
+
+      var cut = before ? E((t - 6.0) / 0.5) : 0;
+      $$('.sheet [data-cut]').forEach(function (n) { n.style.opacity = String(1 - 0.8 * cut); });
+
+      var sheet = $('.sheet');
+      if (sheet) sheet.style.opacity = before ? '1' : String(E((t - 7.0) / 0.5));
+
+      $('#verdict').style.opacity = String(before ? 0 : E((t - 7.6) / 0.4) * (1 - E((t - 9.4) / 0.3)));
+    };
+  })();
+</script>
+</body>
+</html>

@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-labelledby="t">
+  <title id="t">unslop-ui logo: a glossy U with blueprint dimension lines</title>
+  <defs>
+    <linearGradient id="tile" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#6fd6ff"/>
+      <stop offset="1" stop-color="#2c5fe6"/>
+    </linearGradient>
+    <linearGradient id="u" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#d4ecff"/>
+    </linearGradient>
+  </defs>
+  <!-- Tile -->
+  <rect width="512" height="512" rx="120" fill="url(#tile)"/>
+  <!-- Faint drafting grid, kept light so the mark stays the subject -->
+  <g stroke="#ffffff" stroke-opacity=".16" stroke-width="4">
+    <path d="M128 0V512M256 0V512M384 0V512M0 128H512M0 256H512M0 384H512"/>
+  </g>
+  <!-- The U: one glossy stroke -->
+  <path d="M170 150V300A86 86 0 0 0 342 300V150" fill="none" stroke="#1e4fc4" stroke-opacity=".25" stroke-width="60" stroke-linecap="round" transform="translate(0 8)"/>
+  <path d="M170 150V300A86 86 0 0 0 342 300V150" fill="none" stroke="url(#u)" stroke-width="52" stroke-linecap="round"/>
+  <path d="M184 170V300" fill="none" stroke="#ffffff" stroke-opacity=".85" stroke-width="8" stroke-linecap="round"/>
+  <!-- Dimension lines: width across the top, height down the left -->
+  <g stroke="#ffffff" stroke-width="8" stroke-linecap="round" fill="none">
+    <path d="M170 92H342"/>
+    <path d="M160 102L180 82M332 102L352 82"/>
+    <path d="M170 124V96M342 124V96" stroke-opacity=".7" stroke-width="5"/>
+    <path d="M92 150V412"/>
+    <path d="M82 160L102 140M82 402L102 422"/>
+    <path d="M144 150H96M144 412H96" stroke-opacity=".7" stroke-width="5"/>
+  </g>
+</svg>

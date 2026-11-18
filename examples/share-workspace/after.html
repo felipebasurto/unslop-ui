@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Share Workspace (after)</title>
+<style>
+  :root {
+    --sheet: #ffffff;
+    --ink: #111111;
+    --muted: #6b6b6b;
+    --line: #e4e4e1;
+    --lime: #d9f26b;
+    --chip: #f4f4f2;
+  }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    background: #1b1c1d;
+    font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  .sheet {
+    width: 340px;
+    padding: 20px;
+    background: var(--sheet);
+    border-radius: 24px;
+    box-sizing: border-box;
+    color: var(--ink);
+  }
+  .grabber {
+    width: 36px;
+    height: 5px;
+    margin: 0 auto 12px;
+    border-radius: 999px;
+    background: var(--line);
+  }
+  .sheet-head {
+    position: relative;
+    margin-bottom: 12px;
+  }
+  .close {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 28px;
+    height: 28px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--chip);
+    color: var(--ink);
+    font-size: 14px;
+    line-height: 28px;
+    cursor: pointer;
+  }
+  .title {
+    margin: 0;
+    text-align: center;
+    font-size: 17px;
+    font-weight: 600;
+    line-height: 22px;
+  }
+  .copy {
+    margin: 0 0 12px;
+    font-size: 13px;
+    line-height: 18px;
+    color: var(--muted);
+  }
+  .btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 40px;
+    margin-top: 8px;
+    border: 0;
+    border-radius: 999px;
+    background: #ffffff;
+    color: var(--ink);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+  .btn--primary { background: var(--lime); }
+</style>
+</head>
+<body>
+  <section class="sheet" aria-labelledby="share-title">
+    <div class="grabber"></div>
+
+    <header class="sheet-head">
+      <button class="close" type="button" aria-label="Close">✕</button>
+      <h2 class="title" id="share-title">Share Workspace</h2>
+    </header>
+
+    <!-- U4 removed "Invite people to Open shared workspace links..." (narrates the sheet) -->
+    <!-- U5/U4 removed the footer "To remove people or turn off a link..." (task: move to settings docs) -->
+    <p class="copy">Anyone with this link can join. It expires next week.</p>
+
+    <!-- U11 removed the upload icon; unslop 'Send Invite Link' -> 'Send link' (Invite is in the title) -->
+    <button class="btn btn--primary" type="button">Send link</button>
+    <!-- The separate "Copied" button was the state of the copy button; it now lives in the button label -->
+    <button class="btn" type="button">Copy link</button>
+    <button class="btn" type="button">Create Another Link</button>
+  </section>
+</body>
+</html>
