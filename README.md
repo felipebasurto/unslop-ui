@@ -10,19 +10,59 @@
   <a href="https://agentskills.io"><img src="https://img.shields.io/badge/format-Agent%20Skills-555" alt="Agent Skills format"></a>
 </p>
 
-<p align="center">
-  <a href="assets/video/unslop-ui-steps.mp4"><img src="assets/demo.gif" width="720" alt="Five changes to a Share Workspace sheet, one at a time"></a>
-</p>
-
-<p align="center">Five changes to one sheet, one at a time. <a href="assets/video/unslop-ui-steps.mp4">Watch the MP4</a>. The before and after live in <a href="examples/share-workspace"><code>examples/share-workspace</code></a>.</p>
-
-![A landing page with eleven AI tells tagged by rule id, next to the same page after /unslop-ui](assets/anatomy.svg)
-
 Agents decorate everything they build: a tiny uppercase label over every heading, `01 //` before each feature, a subtitle that repeats the title, a caption explaining the button you are looking at, a green "LIVE" dot wired to nothing. `unslop-ui` finds those patterns, removes them, and tells you what it cut and what it left for you to decide.
 
-It is the interface companion to [`/pstack:unslop`](https://github.com/cursor/plugins/tree/main/pstack), which cleans prose. `unslop-ui` loads unslop's rules when it runs and applies them to every string it keeps.
+- **Subtractive.** It deletes first and writes little. It never adds a number, a speed or a feature the code doesn't show.
+- **Safe by default.** Without `--surface` it touches only visible text and decoration, never logic, data, colors or layout. It keeps `aria-label`, `alt`, visible form labels and anything tied to real state.
+- **Reports, not just edits.** Every run ends with a table of counts, the strings it rewrote, what it kept on purpose and the tasks it left for you.
+
+## Quick start
+
+Install it:
+
+```bash
+npx skills add felipebasurto/unslop-ui -g
+```
+
+Then run it on a file, a folder or a component:
+
+```
+/unslop-ui src/pages/landing.tsx
+/unslop-ui src/pages/dashboard.tsx --surface
+```
+
+With no argument it works on the files changed in the conversation. Codex uses `$unslop-ui`, and the Claude Code plugin uses `/unslop-ui:unslop-ui`.
+
+The skill never triggers on its own, because cutting copy is a decision you should make. You have to call it.
+
+## For agents
+
+If a user sent you this repo and said "use this", do the following.
+
+1. **Install the skill**, unless `unslop-ui` is already in your skills folder:
+
+   ```bash
+   npx skills add felipebasurto/unslop-ui -g
+   ```
+
+   Drop `-g` to install into the current project instead of your user folder. Requirements: Python 3.9 or newer, no packages.
+
+2. **Pick the target.** Use the file, folder or component the user named. If they named none, use the files changed in this conversation. If there are none, ask.
+
+3. **Run the skill.** In Claude Code, Cursor and any agent with slash commands or skill invocation, call `unslop-ui` with the target. Add `--surface` only if the user asked for visual cleanup (gradients, spacing, heavy weights, motion).
+
+4. **If you can't invoke skills**, open [`skills/unslop-ui/SKILL.md`](skills/unslop-ui/SKILL.md) and follow it by hand:
+   - Treat the target as `$ARGUMENTS`.
+   - Run `python3 scripts/load_unslop.py` from the skill's folder and apply the rules it prints. In Claude Code that line runs automatically. Elsewhere it doesn't.
+   - Follow the procedure: count, read, verdict, edit, count again, review, report.
+
+5. **End with the report** the skill defines: the counts table, then **Rewritten**, **Kept on purpose** and **Tasks**. The user needs the Rewritten list, because it is the only text you wrote.
+
+Do not run it on a screen with nothing to cut. The verdict step exists so that a clean screen comes back untouched.
 
 ## What it removes
+
+![A landing page with eleven AI tells tagged by rule id, next to the same page after /unslop-ui](assets/anatomy.svg)
 
 | Id | Pattern | Example |
 |---|---|---|
@@ -43,6 +83,8 @@ It is the interface companion to [`/pstack:unslop`](https://github.com/cursor/pl
 | U15 | Chart scaffolding | Frame box around the plot, dark or dense gridlines, thick axes, shadows, 3D |
 | U16 | Legend instead of a label | A legend box when each line could carry its name at its end |
 
+Everything that remains goes through the writing rules of [`/pstack:unslop`](https://github.com/cursor/plugins/tree/main/pstack) (em dashes, AI vocabulary, rule of three). If pstack is installed, `unslop-ui` reads its rules on every run and follows their updates. If not, it uses the condensed copy in [`references/unslop-fallback.md`](skills/unslop-ui/references/unslop-fallback.md). Either way it loads only the rules that apply to interface text.
+
 ### Surface rules (opt-in)
 
 Add `--surface` and the skill also fixes four visual tells, each with a concrete replacement value from [`references/tokens.md`](skills/unslop-ui/references/tokens.md):
@@ -54,21 +96,55 @@ Add `--surface` and the skill also fixes four visual tells, each with a concrete
 | U19 | `font-extrabold`, `font-black`, weights 800 and 900 | 500 or 600 |
 | U20 | `transition-all`, `hover:scale-*` on cards, `animate-bounce` | Named properties at 150ms ease-out |
 
+Without the flag these four never run. They replace a value with a better value. They don't change the palette, the type family or the layout. For that, see [Pairs well with](#pairs-well-with). If the project already has tokens (a Tailwind theme, CSS variables), the skill fixes toward those instead.
+
+## How it behaves
+
+Every run ends with a verdict: **heavy** (work through every rule), **light** (fix only what was found) or **none** (edit nothing, say so). A screen with nothing to cut is left alone.
+
+- It keeps `aria-label`, `alt`, screen-reader text, and a visible label tied to every form field.
+- Anything that reflects real state (a badge rendered from a prop, a real step order) stays, and the report says why.
+- Text that comes from a translation file, props or a CMS is fixed at its source or reported, not hard-coded into the component.
+- When a slogan has to become a sentence, the new text uses only what the page already says. Claims the code can't verify, such as "Trusted by 10,000+ teams" or a testimonial, are left in place and listed as tasks for you.
+- When it deletes an element, it also deletes the empty wrapper, margin and unused import left behind.
+
+### The report
+
+This one is from the run that produced `examples/after`, shortened:
+
+| Rule | Before | After | Kept |
+|---|---|---|---|
+| U1 eyebrow | 5 | 0 | |
+| U4 botsplaining | 5 | 0 | |
+| U11 emoji | 6 | 0 | |
+| unslop 13 em dash | 3 | 0 | |
+
+**Rewritten**
 ```
-/unslop-ui src/pages/dashboard.tsx --surface
+"Finance. Simplified. Finally." → "Manage your team's money" (U8, from the cut hero line "manage their money")
+"▲ 12% up" → "▲ 12% vs last month" (U14, the period came from the cut description)
+"📈 Line chart of weekly active users" → "Weekly active users" (U12)
 ```
 
-Without the flag these four never run, so a plain `/unslop-ui` behaves as before. They replace a value with a better value. They don't change the palette, the type family or the layout. For that, see [Pairs well with](#pairs-well-with).
+**Kept on purpose**
+- `aria-label="Subscribe to newsletter"`: guardrail.
+- The email label: it stays visible. I added `for="email"` and `id="email"` so it is tied to the input.
 
-Every run ends with a verdict: heavy (work through every rule), light (fix only what was found) or none (edit nothing, say so). A screen with nothing to cut is left alone.
+**Tasks**
+- [ ] `Dashboard.tsx:15`  "12%" is hard-coded, not bound to data. Bind it to a prop or confirm it is a placeholder.
+- [ ] `landing.html`  The hero now has no supporting line. If you want one, add a fact you can verify (price, free tier, integrations).
 
-Without `--surface` it leaves logic, data, colors and layout alone. It keeps `aria-label`, `alt` and screen-reader text, and a form field keeps its visible label. Anything that reflects real state (a badge rendered from a prop, a real step order) stays, and the report says why.
-
-It cuts first and writes little. When a slogan has to become a sentence, the new text uses only what the page already says: it never adds a number, a speed or a feature. Claims the code can't verify, such as "Trusted by 10,000+ teams" or a testimonial, are left in place and listed as tasks for you.
+"Rewritten" lists every string the skill wrote, old and new, because that is the part you have to check. Deletions are in the diff. "Kept" is how many hits it left on purpose, so the count doesn't have to reach 0: the skill is told never to delete something legitimate to get there.
 
 ## Examples
 
-All three come from [`examples/`](examples): the files in `before/` were written to be full of tells, and `after/` is the unedited output of one `/unslop-ui` run in a fresh Claude Code session. The drawings show those files rendered with sample data, and each tell carries the id of the rule that removed it.
+The files in [`examples/before`](examples/before) were written to be full of tells. [`examples/after`](examples/after) is the unedited output of one `/unslop-ui` run in a fresh Claude Code session. The drawings show those files rendered with sample data, and each tell carries the id of the rule that removed it.
+
+### A sheet, step by step
+
+[![Five changes to a Share Workspace sheet, one at a time](assets/demo.gif)](assets/video/unslop-ui-steps.mp4)
+
+Five changes to one sheet, one at a time. [Watch the MP4](assets/video/unslop-ui-steps.mp4). The before and after live in [`examples/share-workspace`](examples/share-workspace).
 
 ### A dashboard
 
@@ -136,7 +212,7 @@ Full files: [before](examples/before/chart.js), [after](examples/after/chart.js)
 
 ### A landing page
 
-The page from the drawing at the top, rendered in a browser. Full files: [before](examples/before/landing.html), [after](examples/after/landing.html).
+The page from the annotated drawing above, rendered in a browser. Full files: [before](examples/before/landing.html), [after](examples/after/landing.html).
 
 ![The landing example rendered before and after](assets/before-after.png)
 
@@ -158,55 +234,26 @@ As a Claude Code plugin:
 
 ```bash
 claude plugin marketplace add felipebasurto/unslop-ui
-```
-
-```bash
 claude plugin install unslop-ui@unslop-ui
 ```
 
 By hand:
 
 ```bash
-git clone https://github.com/felipebasurto/unslop-ui && cp -R unslop-ui/skills/unslop-ui ~/.claude/skills/
+git clone https://github.com/felipebasurto/unslop-ui
+cp -R unslop-ui/skills/unslop-ui ~/.claude/skills/
 ```
 
-Install [pstack](https://github.com/cursor/plugins/tree/main/pstack) too and `unslop-ui` reads its unslop rules on every run, so it follows their updates. Without it, the skill uses a condensed copy of the same rules that ships in [`references/unslop-fallback.md`](skills/unslop-ui/references/unslop-fallback.md). Either way it loads only the rules that apply to interface text and skips the ones written for documents.
+Optional: install [pstack](https://github.com/cursor/plugins/tree/main/pstack) so `unslop-ui` reads the live unslop rules instead of the bundled copy.
 
-## Use
+### Compatibility
 
-```
-/unslop-ui src/pages/landing.tsx
-```
-
-Pass a file, a folder or a component name. With no argument it works on the files changed in the conversation. As a Claude Code plugin the command is `/unslop-ui:unslop-ui`. In Codex, type `$unslop-ui`.
-
-The skill only runs when you call it. It never triggers on its own, because cutting copy is a decision you should make.
-
-Each run ends with a report. This one is from the run that produced `examples/after`, shortened:
-
-| Rule | Before | After | Kept |
-|---|---|---|---|
-| U1 eyebrow | 5 | 0 | |
-| U4 botsplaining | 5 | 0 | |
-| U11 emoji | 6 | 0 | |
-| unslop 13 em dash | 3 | 0 | |
-
-**Rewritten**
-```
-"Finance. Simplified. Finally." → "Manage your team's money" (U8, from the cut hero line "manage their money")
-"▲ 12% up" → "▲ 12% vs last month" (U14, the period came from the cut description)
-"📈 Line chart of weekly active users" → "Weekly active users" (U12)
-```
-
-**Kept on purpose**
-- `aria-label="Subscribe to newsletter"`: guardrail.
-- The email label: it stays visible. I added `for="email"` and `id="email"` so it is tied to the input.
-
-**Tasks**
-- [ ] `Dashboard.tsx:15`  "12%" is hard-coded, not bound to data. Bind it to a prop or confirm it is a placeholder.
-- [ ] `landing.html`  The hero now has no supporting line. If you want one, add a fact you can verify (price, free tier, integrations).
-
-The table counts what was found and what is left. "Rewritten" lists every string the skill wrote, old and new, because that is the part you have to check. Deletions are in the diff. "Kept" is how many hits it left on purpose, so the count doesn't have to reach 0: the skill is told never to delete something legitimate to get there.
+| Agent | Invoke with | Notes |
+|---|---|---|
+| Claude Code | `/unslop-ui` (plugin: `/unslop-ui:unslop-ui`) | Full support: loads unslop rules automatically, takes arguments |
+| Cursor | `/unslop-ui` | Works. Run `scripts/load_unslop.py` yourself if the unslop rules don't appear |
+| Codex | `$unslop-ui` | Works, explicit invocation only (`agents/openai.yaml`) |
+| Any other agent | "Follow `skills/unslop-ui/SKILL.md` on `<target>`" | See [For agents](#for-agents) |
 
 ## The counter
 
@@ -222,16 +269,6 @@ It reads HTML, JSX, TSX, JS, TS, Vue, Svelte, Astro, Markdown and MDX, plus CSS,
 
 It is a heuristic. It can't see the patterns that need reading (U3 to U5, U7, U8, U14). It skips what usually isn't a tell: comments, loading skeletons, uppercase table headers, a lone "—" in an empty cell, a single "·" between two facts, "New" on a button. It still flags some legitimate cases, such as a badge that is wired to real data.
 
-## Compatibility
-
-| Agent | Status |
-|---|---|
-| Claude Code | Full support: loads unslop rules automatically, takes arguments |
-| Cursor | Works. Run `scripts/load_unslop.py` yourself if the unslop rules don't appear |
-| Codex | Works, explicit invocation only (`agents/openai.yaml`) |
-
-The counter needs Python 3.9 or newer and no packages.
-
 ## Development
 
 ```bash
@@ -240,7 +277,7 @@ python3 -m unittest discover -s tests
 
 The tests check that the counter finds every planted pattern in `examples/before`, finds none in `examples/after`, ignores comments and the legitimate look-alikes, and that the loader picks the newest pstack install, keeps only the rules for interfaces, or falls back to the bundled copy.
 
-The counter can only reward deleting, so the behavior of the skill itself has its own check. [`evals/`](evals) holds five small screens and what must be true after a run:
+The counter can only reward deleting, so the behavior of the skill itself has its own check. [`evals/`](evals) holds small screens and what must be true after a run:
 
 | Fixture | What it checks |
 |---|---|
@@ -249,6 +286,7 @@ The counter can only reward deleting, so the behavior of the skill itself has it
 | `i18n` | Copy in a translation file is fixed there, not hard-coded into the component |
 | `form` | Labels stay visible and tied to their inputs; a real constraint and an accessible name stay |
 | `claims` | Slogans go without invented facts or numbers; unverifiable social proof is reported, not deleted |
+| `nav-menu` | Decorative menu icons and per-item blurbs go; the destinations stay |
 
 ```bash
 python3 evals/run.py                       # runs `claude -p` on every fixture, then checks
