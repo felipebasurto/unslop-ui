@@ -1,6 +1,7 @@
 export function Links() {
   return (
     <section>
+      <nav><a href="/voyages">Voyages</a></nav>
       <h2>Pricing</h2>
       <a href="/pricing">Learn more →</a>
       <Button>Get started <ArrowRight className="size-4" /></Button>
