@@ -23,3 +23,23 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
       - run: python -m unittest discover -s tests -v
+
+  action:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - id: clean
+        uses: ./
+        with:
+          path: examples/after
+          surface: "true"
+          max: "0"
+      - run: test "${{ steps.clean.outputs.total }}" = "0"
+      - id: dirty
+        uses: ./
+        continue-on-error: true
+        with:
+          path: examples/before
+          max: "0"
+      - run: test "${{ steps.dirty.outcome }}" = "failure" && test "${{ steps.dirty.outputs.total }}" = "35"
+

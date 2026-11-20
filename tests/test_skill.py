@@ -551,6 +551,124 @@ class IncidentTest(unittest.TestCase):
         self.assertIn("U9 badge word: expected 5, counted 0", evals_run.check_incident(wrong))
 
 
+HOOK = os.path.join(SKILL, "scripts", "hook.py")
+ACTION_SCRIPT = os.path.join(ROOT, "scripts", "action.sh")
+
+
+def read_if_present(path):
+    if not os.path.exists(path):
+        return ""
+    with open(path, encoding="utf-8") as f:
+        return f.read()
+
+
+def run_hook(payload, env=None, cwd=ROOT):
+    return subprocess.run(
+        [sys.executable, HOOK], input=json.dumps(payload), capture_output=True, text=True, cwd=cwd,
+        env={**os.environ, **(env or {})},
+    )
+
+
+class HookTest(unittest.TestCase):
+    """The edit hook is opt-in and must never get in the agent's way."""
+
+    def setUp(self):
+        self.folder = tempfile.TemporaryDirectory()
+        self.addCleanup(self.folder.cleanup)
+        self.root = os.path.realpath(self.folder.name)
+
+    def write(self, name, text):
+        path = os.path.join(self.root, name)
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(text)
+        return path
+
+    def test_tells_a_claude_code_agent_what_it_just_wrote(self):
+        path = self.write("hero.html", '<p class="uppercase tracking-widest">Introducing</p><h1>Hi</h1>\n')
+        result = run_hook({"hook_event_name": "PostToolUse", "cwd": self.root, "tool_name": "Write", "tool_input": {"file_path": path}})
+        self.assertEqual(result.returncode, 0)
+        output = json.loads(result.stdout)["hookSpecificOutput"]
+        self.assertEqual(output["hookEventName"], "PostToolUse")
+        self.assertIn("unslop-ui found 1 possible AI tell in hero.html: U1 eyebrow x1 (line 1)", output["additionalContext"])
+
+    def test_tells_a_cursor_agent_in_cursor_format(self):
+        path = self.write("src/Hero.tsx", "export const A = () => <p>🚀 Launch</p>;\n")
+        result = run_hook({"hook_event_name": "postToolUse", "cursor_version": "2026.10", "workspace_roots": [self.root], "tool_name": "Write", "tool_input": {"file_path": path}})
+        text = json.loads(result.stdout)["additional_context"]
+        self.assertIn("in src/Hero.tsx: U11 emoji x1 (line 1)", text)
+
+    def test_stays_silent_on_a_clean_file_and_on_files_it_does_not_scan(self):
+        clean = self.write("a.html", "<h1>Pricing</h1>\n")
+        other = self.write("a.py_", "x")
+        dep = self.write("node_modules/x/index.js", "<p>🚀</p>\n")
+        for path in (clean, other, dep, os.path.join(self.root, "missing.html")):
+            result = run_hook({"hook_event_name": "PostToolUse", "cwd": self.root, "tool_input": {"file_path": path}})
+            self.assertEqual((result.returncode, result.stdout), (0, ""), path)
+
+    def test_fails_open_on_bad_input(self):
+        for raw in ("", "not json", "[]", '{"tool_input": null}'):
+            result = subprocess.run([sys.executable, HOOK], input=raw, capture_output=True, text=True, cwd=ROOT)
+            self.assertEqual((result.returncode, result.stdout), (0, ""), raw)
+
+    def test_honors_the_taste_file_and_the_surface_switch(self):
+        path = self.write("a.html", '<h1>Welcome back!</h1>\n<p class="mt-[13px]">x</p>\n')
+        payload = {"hook_event_name": "PostToolUse", "cwd": self.root, "tool_input": {"file_path": path}}
+        self.assertEqual(run_hook(payload).stdout, "")
+        self.write(".unslop-ui/taste.md", "## Bans\n\n- Exclamation marks\n")
+        self.assertIn("T1 exclamation mark x1", run_hook(payload).stdout)
+        self.write(".unslop-ui/taste.md", "## Bans\n\n- Exclamation marks\n\n## Off\n\n- T1, we like them\n")
+        self.assertEqual(run_hook(payload).stdout, "")
+        self.assertIn("U18 off-scale spacing x1", run_hook(payload, env={"UNSLOP_UI_SURFACE": "1"}).stdout)
+
+    def test_example_configs_point_at_the_script_and_the_right_events(self):
+        claude = json.loads(read_text(ROOT, "examples", "hooks", "claude-settings.json"))
+        entry = claude["hooks"]["PostToolUse"][0]
+        self.assertIn("Write", entry["matcher"])
+        self.assertTrue(entry["hooks"][0]["command"].endswith("scripts/hook.py"))
+        cursor = json.loads(read_text(ROOT, "examples", "hooks", "cursor-hooks.json"))
+        self.assertEqual(cursor["version"], 1)
+        self.assertEqual(cursor["hooks"]["postToolUse"][0]["matcher"], "Write")
+        self.assertTrue(cursor["hooks"]["postToolUse"][0]["command"].endswith("scripts/hook.py"))
+
+
+class ActionTest(unittest.TestCase):
+    def run_action(self, **inputs):
+        with tempfile.TemporaryDirectory() as folder:
+            output, summary = os.path.join(folder, "output"), os.path.join(folder, "summary")
+            env = {**os.environ, "GITHUB_OUTPUT": output, "GITHUB_STEP_SUMMARY": summary}
+            env.update({"INPUT_" + key.upper(): value for key, value in inputs.items()})
+            result = subprocess.run(["bash", ACTION_SCRIPT], capture_output=True, text=True, cwd=ROOT, env=env)
+            return result, read_if_present(output), read_if_present(summary)
+
+    def test_fails_above_the_limit_and_reports_the_total(self):
+        result, output, summary = self.run_action(path="examples/before", max="0")
+        self.assertEqual(result.returncode, 1)
+        self.assertTrue(result.stdout.startswith("::warning file=examples/before/"))
+        self.assertEqual(output.strip(), "total=35")
+        self.assertIn("35 possible tells (limit: 0)", summary)
+
+    def test_passes_a_clean_folder_and_reports_without_a_limit(self):
+        result, output, _ = self.run_action(path="examples/after", max="0", surface="true")
+        self.assertEqual((result.returncode, output.strip()), (0, "total=0"))
+        result, output, summary = self.run_action(path="examples/before examples/after")
+        self.assertEqual((result.returncode, output.strip()), (0, "total=35"))
+        self.assertIn("(limit: no limit)", summary)
+
+    def test_a_missing_path_fails_without_a_total(self):
+        result, output, _ = self.run_action(path="does/not/exist")
+        self.assertEqual((result.returncode, output), (2, ""))
+
+    def test_action_file_is_a_composite_action_that_runs_the_script(self):
+        text = read_text(ROOT, "action.yml")
+        self.assertIn("using: composite", text)
+        self.assertIn('scripts/action.sh', text)
+        for name in ("path", "max", "surface", "taste"):
+            self.assertRegex(text, r"(?m)^  %s:$" % name)
+            self.assertIn("INPUT_%s: ${{ inputs.%s }}" % (name.upper(), name), text)
+        self.assertIn("value: ${{ steps.count.outputs.total }}", text)
+
+
 IMAGE_SUFFIXES = {".png", ".jpg", ".jpeg", ".gif", ".webp", ".ico"}
 ALLOWED_PLUGIN_SUFFIXES = {".md", ".txt", ".json", ".yaml", ".yml"} | IMAGE_SUFFIXES
 

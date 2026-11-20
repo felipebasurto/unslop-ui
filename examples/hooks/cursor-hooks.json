@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "hooks": {
+    "postToolUse": [
+      { "command": "python3 ~/.cursor/skills/unslop-ui/scripts/hook.py", "matcher": "Write" }
+    ]
+  }
+}
