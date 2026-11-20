@@ -1,12 +1,13 @@
 # Surface values
 
-Fix targets for U17 to U20, and nothing else: there is no rule here for type sizes, radii or the palette, so leave those as they are. When the project already has a token system (Tailwind theme, CSS variables, a design-system package), use its values and only fix where the code bypasses them. These numbers are the fallback, not a house style.
+Fix targets for U17 to U20 and U26, and nothing else: there is no rule here for type sizes, radii or the palette, so leave those as they are. When the project already has a token system (Tailwind theme, CSS variables, a design-system package), use its values and only fix where the code bypasses them. These numbers are the fallback, not a house style.
 
 ## Contents
 - Gradients, glows and depth (U17)
 - Spacing (U18)
 - Weight (U19)
 - Motion (U20)
+- Edge accent bars (U26)
 
 ## Gradients, glows and depth (U17)
 
@@ -43,3 +44,12 @@ Weights 400 to 600. 800 and 900 become 600, or 500 where siblings already use it
 | Entrance, layout change | 300 to 400ms |
 
 One easing curve for the screen: `cubic-bezier(0.22, 1, 0.36, 1)` or the framework's ease-out. Transition named properties (`transition-colors`, `transition-[opacity,transform]`), never `all`. A press scales to 0.97 to 0.98. A card does not scale on hover. Keep motion that explains something (a menu rising a few pixels, a number tweening) and drop loops and bounces.
+
+Scroll reveals (`whileInView`, `data-aos`, a fade-up on every section): render the content in place, with no entrance. An entrance that answers something the user did, such as a panel opening, stays.
+
+## Edge accent bars (U26)
+
+- A card gets a 1px border on every edge, the text color at 6 to 10% opacity, or no border and a surface step.
+- A selected or active row gets a neutral tint (`bg-muted`, or the surface one step up) and no bar.
+- A quote keeps a 1px or 2px rule in a neutral color.
+- A bar on a real status stays: an error or warning callout, an `role="alert"` message.

@@ -19,3 +19,10 @@ Nothing here is cut or rewritten, whatever a rule says. The report lists it unde
 
 - The Beta badge in the header
 - Legal text in the footer
+
+## Off
+
+Rule ids to skip entirely (`U11`, `T1`, `unslop 13`), each with its reason. The counter stops counting them and the agent does not apply them.
+
+- U11, our product names include emoji
+- unslop 13, the brand writes with dashes

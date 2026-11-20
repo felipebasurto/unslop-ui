@@ -481,7 +481,7 @@ class SkillFileTest(unittest.TestCase):
 
     def test_defines_every_rule_the_counter_reports(self):
         defined = set(re.findall(r"\*\*(U\d+)\. ", self.text))
-        self.assertEqual(defined, {"U{}".format(n) for n in range(1, 21)})
+        self.assertEqual(defined, {"U{}".format(n) for n in range(1, 27)})
         reported = {rule.split()[0] for rule in count("--surface", os.path.join(ROOT, "examples", "after")) if rule.startswith("U")}
         self.assertLessEqual(reported, defined)
 
@@ -615,7 +615,7 @@ class PluginTest(unittest.TestCase):
 
     def test_every_counted_rule_has_a_search_pattern(self):
         patterns = read_text(PLUGIN_SKILL, "references", "finding-tells.md")
-        for rule in ["U1", "U2", "U6", "U9", "U10", "U11", "U12", "U13", "U15", "U16", "U17", "U18", "U19", "U20", "T1", "T2", "T3", "unslop 13"]:
+        for rule in ["U1", "U2", "U6", "U9", "U10", "U11", "U12", "U13", "U15", "U16", "U17", "U18", "U19", "U20", "U21", "U23", "U26", "T1", "T2", "T3", "unslop 7", "unslop 13"]:
             self.assertIn("**" + rule + " ", patterns)
 
 
