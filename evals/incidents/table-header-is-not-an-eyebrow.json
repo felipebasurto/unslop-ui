@@ -1,0 +1,15 @@
+{
+  "id": "table-header-is-not-an-eyebrow",
+  "report": "Uppercase tracked table headers were counted as U1 eyebrows.",
+  "rule": {
+    "file": "plugins/unslop-ui/skills/unslop-ui/references/finding-tells.md",
+    "phrase": "Table headers and key caps use the same styling and are not eyebrows."
+  },
+  "counter": {
+    "suffix": ".tsx",
+    "source": "<th className=\"text-xs uppercase tracking-wide\">Amount</th>\n<kbd className=\"uppercase tracking-wider\">k</kbd>\n",
+    "expect": {
+      "U1 eyebrow": 0
+    }
+  }
+}

@@ -1,0 +1,21 @@
+# Taste
+
+What this team wants gone from its interface copy. Save it as `.unslop-ui/taste.md` at the project root and `/unslop-ui` reads it on every run. Edit the bullets, delete the ones you do not care about.
+
+## Bans
+
+Each bullet is one more tell. The first three are also counted by `count_tells.py`, as T1, T2 and T3. The rest are read by the agent.
+
+- Exclamation marks
+- Uppercase text, not only eyebrows
+- Middle dots between items
+- Emoji, including in docs
+- Gradients
+- The word "seamless"
+
+## Keep
+
+Nothing here is cut or rewritten, whatever a rule says. The report lists it under "Kept on purpose".
+
+- The Beta badge in the header
+- Legal text in the footer

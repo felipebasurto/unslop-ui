@@ -98,6 +98,25 @@ Add `--surface` and the skill also fixes four visual tells, each with a concrete
 
 Without the flag these four never run. They replace a value with a better value. They don't change the palette, the type family or the layout. For that, see [Pairs well with](#pairs-well-with). If the project already has tokens (a Tailwind theme, CSS variables), the skill fixes toward those instead.
 
+## Your own bans (taste file)
+
+What counts as a tell depends on the team. Put a `.unslop-ui/taste.md` at the project root and `/unslop-ui` reads it on every run:
+
+```markdown
+## Bans
+
+- Exclamation marks
+- Uppercase text, not only eyebrows
+- Middle dots between items
+- The word "seamless"
+
+## Keep
+
+- The Beta badge in the header
+```
+
+Each ban is one more tell, fixed the same way as the others: delete first, write only from what the code shows. The first three have counter rules, **T1** exclamation marks, **T2** uppercase text anywhere and **T3** a middle dot standing alone, and `count_tells.py` counts them only when the file bans them. The agent finds any other ban by reading. Everything under **Keep** is left alone and listed in the report. The guardrails still win: a ban on uppercase never removes an `aria-label` or a visible form label. Start from [`references/taste-example.md`](skills/unslop-ui/references/taste-example.md).
+
 ## How it behaves
 
 Every run ends with a verdict: **heavy** (work through every rule), **light** (fix only what was found) or **none** (edit nothing, say so). A screen with nothing to cut is left alone.
@@ -259,7 +278,7 @@ Optional: install [pstack](https://github.com/cursor/plugins/tree/main/pstack) s
 
 ## The counter
 
-`scripts/count_tells.py` is a regex counter for the patterns that can be found mechanically: U1, U2, U6, U9, U10, U11 (emojis and icon tiles), em dashes, and the common code forms of U12, U13, U15 and U16 (a title that names the chart type, "hover over", shadows, thick axis borders and gridlines, legends turned on). With `--surface` it also counts U17 to U20. The skill runs it before and after editing. You can run it on its own, and `--max` makes it fail a CI job:
+`scripts/count_tells.py` is a regex counter for the patterns that can be found mechanically: U1, U2, U6, U9, U10, U11 (emojis and icon tiles), em dashes, and the common code forms of U12, U13, U15 and U16 (a title that names the chart type, "hover over", shadows, thick axis borders and gridlines, legends turned on). With `--surface` it also counts U17 to U20, and a taste file in `.unslop-ui/taste.md` (or `--taste PATH`) adds T1 to T3. The skill runs it before and after editing. You can run it on its own, and `--max` makes it fail a CI job:
 
 ```bash
 python3 skills/unslop-ui/scripts/count_tells.py src/
@@ -298,15 +317,32 @@ python3 evals/run.py --agent 'codex exec' --prompt '$unslop-ui .'   # another ag
 
 It copies the fixtures to a temporary folder, runs the agent there, and prints what failed with the path to the edited copies and each run's report. It needs an agent CLI and spends tokens, so it is not part of CI. Run it after changing `SKILL.md`.
 
+### Incidents
+
+Every false positive or missed tell that gets fixed becomes a file in [`evals/incidents`](evals/incidents): the report, the counter output it must keep giving, and a phrase that must stay written in a rule file, so a later edit can't quietly undo the fix. `python3 evals/run.py --incidents` replays them with no agent and no tokens, and the test suite runs them too.
+
+```json
+{
+  "id": "button-new-is-not-a-badge",
+  "report": "<Button>New</Button> was counted as a U9 badge, but it is an action.",
+  "rule": { "file": "skills/unslop-ui/SKILL.md", "phrase": "Keep a badge only if it reflects data the app actually tracks" },
+  "counter": { "suffix": ".tsx", "source": "<Button>New</Button>\n", "expect": { "U9 badge word": 0 } }
+}
+```
+
+Found one? Open a [false positive](https://github.com/felipebasurto/unslop-ui/issues/new?template=false-positive.yml) or a [missed tell](https://github.com/felipebasurto/unslop-ui/issues/new?template=missed-tell.yml) issue with the smallest snippet that shows it.
+
 ## Pairs well with
 
 [tufte-claude-skill](https://github.com/aref-vc/tufte-claude-skill) builds charts from Edward Tufte's principles: chart choice, graphical integrity, small multiples. `unslop-ui` doesn't redesign charts. It borrows the subtractive half of those ideas (one encoding per quantity, faint scaffolding, direct labels over legends) as U14 to U16, so you can build with the Tufte skill and clean up any interface with this one.
 
 [unslop](https://github.com/heydamir/unslop) by Damir Sokolovsky ([@heydamir](https://x.com/heydamir)) covers the whole screen instead of the copy: it writes a short design direction first, then works through spacing, color, icons, copy, type, layout, details, visuals and motion, with starting tokens for each. If a dashboard needs a redesign and not only a cleanup, run it first, then run `unslop-ui` as the final copy and chart pass. `unslop-ui` stays subtractive on purpose: it won't pick a direction, a palette or a type family for you.
 
+[design.how](https://github.com/arla6ka/design.how) by [@arla6ka](https://github.com/arla6ka) goes the other way: skills to build a design system, move an app onto it and review a screen, plus four ready systems. Run it when the whole app needs structure, then `unslop-ui` on the copy. Its taste file and its incident evals inspired the two features above.
+
 ## Credits
 
-The `--surface` rules, the verdict step and the report-as-tasks list were suggested by user feedback after comparing this skill with [unslop](https://github.com/heydamir/unslop) (CC BY 4.0). The values in `references/tokens.md` are written for this skill, using common practice (a 4px grid, 4.5:1 contrast, hairline borders).
+The taste file and the incident evals follow the shape of [design.how](https://github.com/arla6ka/design.how) (MIT): its `taste.md` bans and its `evals/incidents` cases. The `--surface` rules, the verdict step and the report-as-tasks list were suggested by user feedback after comparing this skill with [unslop](https://github.com/heydamir/unslop) (CC BY 4.0). The values in `references/tokens.md` are written for this skill, using common practice (a 4px grid, 4.5:1 contrast, hairline borders).
 
 The unslop rules are by [Lauren Tan](https://github.com/poteto), from [pstack](https://github.com/cursor/plugins/tree/main/pstack) (MIT). U14 to U16 follow Edward Tufte's data-ink and chartjunk principles. The other UI patterns come from what designers and developers keep pointing out about AI-built interfaces in 2026.
 

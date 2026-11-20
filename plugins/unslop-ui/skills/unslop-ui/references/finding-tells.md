@@ -28,6 +28,12 @@ Count a hit once per element or string, not once per match.
 - **U19 heavy weight.** `font-(extrabold|black)`, `font-?[wW]eight\W{0,3}[89]00`, `font-\[[89]00\]`
 - **U20 motion.** `transition-all`, `transition:\s*all`, `hover:scale-`, `animate-bounce`
 
+## Taste bans (only when `.unslop-ui/taste.md` bans them)
+
+- **T1 exclamation mark.** `\w!(\s|<|$)` in a text node, a quoted string or a line of prose. `!==`, `!important` and a bare `!` are not it.
+- **T2 uppercase text.** `(?<![\w-])uppercase(?![\w-])`, `text-transform:\s*uppercase`. Skip `kbd` and `abbr`, and skip what U1 already counted as an eyebrow.
+- **T3 middle dot.** A single `·`, `•`, `&middot;` or `&bull;` that stands alone. Two or more close together are U6.
+
 ## What no pattern finds
 
 U3 subtitles, U4 botsplaining, U5 leaked design notes, U7 labeling everything, U8 slogans and U14 saying it twice need reading. Read every visible string and tag each problem yourself.

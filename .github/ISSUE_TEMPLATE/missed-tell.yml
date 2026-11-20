@@ -1,0 +1,34 @@
+name: Missed tell
+description: A pattern that reads as AI-generated and the skill left in place
+labels: [missed-tell]
+body:
+  - type: textarea
+    id: snippet
+    attributes:
+      label: The code
+      description: The smallest snippet that shows it.
+      render: tsx
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why it is a tell
+      description: What a person would cut, and what the screen reads like without it. A screenshot helps.
+    validations:
+      required: true
+  - type: dropdown
+    id: language
+    attributes:
+      label: Language of the copy
+      options:
+        - English
+        - Spanish
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: stack
+    attributes:
+      label: Stack
+      description: React, Vue, Svelte, Astro, plain HTML, Chart.js, matplotlib, and so on.

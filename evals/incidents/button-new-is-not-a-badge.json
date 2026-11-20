@@ -1,0 +1,15 @@
+{
+  "id": "button-new-is-not-a-badge",
+  "report": "<Button>New</Button> was counted as a U9 badge, but it is an action.",
+  "rule": {
+    "file": "skills/unslop-ui/SKILL.md",
+    "phrase": "Keep a badge only if it reflects data the app actually tracks"
+  },
+  "counter": {
+    "suffix": ".tsx",
+    "source": "<Button>New</Button>\n<td>Pro</td>\n",
+    "expect": {
+      "U9 badge word": 0
+    }
+  }
+}

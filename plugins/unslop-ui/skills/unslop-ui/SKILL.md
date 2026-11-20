@@ -92,13 +92,22 @@ For before/after pairs, read [references/examples.md](references/examples.md) wh
 - Claims you cannot verify from the code (customer counts, uptime, ratings, testimonials, customer logos): do not delete or rewrite them. List each as a task.
 - If a flagged case earns its place (real state, real order, legal text), keep it and say why in the report.
 
+## Taste file
+
+If `.unslop-ui/taste.md` exists in the project, read it before step 1. It is the owner's list of what they want gone, and it wins over your own judgment of what is a tell.
+
+- **Bans.** Each bullet under `## Bans` is one more tell, fixed with the same rule as the UI rules: delete first, rewrite only from what the source shows. Three have a counter rule and a fixed id: exclamation marks (**T1**), uppercase text anywhere, not only eyebrows (**T2**) and middle dots or bullets that stand alone (**T3**, a chain is U6). Any other bullet you find by reading and number T4, T5 in order. Emoji, em dashes and gradients already have U11, unslop 13 and U17, so a ban on them needs no new id.
+- **Keep.** Each bullet under `## Keep` names something never to cut or rewrite, such as a badge, a brand name or legal text. List it under "Kept on purpose" when it would have been a hit.
+
+A taste file never overrides the guardrails above. A ban on uppercase does not delete an `aria-label`, a visible form label or text that renders from real state. With no taste file, T1 to T3 do not run. See [references/taste-example.md](references/taste-example.md) for the format.
+
 ## Procedure
 
 Copy this checklist and track it:
 
 ```
-- [ ] 1. Count: search the target with the patterns in references/finding-tells.md, tally hits per rule (add --surface patterns only with --surface)
-- [ ] 2. Read every visible string and decorative element; tag each problem with U1-U20 or an unslop rule number
+- [ ] 1. Count: search the target with the patterns in references/finding-tells.md, tally hits per rule (add --surface patterns only with --surface, and the T1 to T3 patterns only when the taste file bans them)
+- [ ] 2. Read every visible string and decorative element; tag each problem with U1-U20, a T number from the taste file, or an unslop rule number
 - [ ] 3. Verdict: heavy, light or none
 - [ ] 4. Edit
 - [ ] 5. Count again with the same command
