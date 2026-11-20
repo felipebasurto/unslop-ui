@@ -1,15 +1,15 @@
 {
   "id": "specific-submit-label-is-fine",
-  "report": "\"Submit order\" was counted as a generic button name.",
+  "report": "\"Submit order\" and a descriptive link were counted as generic names.",
   "rule": {
-    "file": "skills/unslop-ui/SKILL.md",
-    "phrase": "A label that already says what it does"
+    "file": "plugins/unslop-ui/skills/unslop-ui/references/finding-tells.md",
+    "phrase": "The same text with the same `href` is fine."
   },
   "counter": {
     "suffix": ".tsx",
     "source": "<button type=\"submit\">Submit order</button>\n<a href=\"/p\">Read the pricing guide</a>\n",
     "expect": {
-      "U23 vague link label": 0
+      "U23 repeated link label": 0
     }
   }
 }

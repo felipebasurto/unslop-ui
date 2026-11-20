@@ -3,7 +3,7 @@
   "report": "An arrow after a Link whose href is a template literal was missed.",
   "rule": {
     "file": "skills/unslop-ui/SKILL.md",
-    "phrase": "A `→` glyph or an arrow icon after the text of a link or button"
+    "phrase": "an arrow icon after the text of a link or button"
   },
   "counter": {
     "suffix": ".tsx",

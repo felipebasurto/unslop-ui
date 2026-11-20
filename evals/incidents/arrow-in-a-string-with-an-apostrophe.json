@@ -3,7 +3,7 @@
   "report": "\"See what's new →\" was missed because the apostrophe broke quote pairing.",
   "rule": {
     "file": "skills/unslop-ui/SKILL.md",
-    "phrase": "A `→` glyph or an arrow icon after the text of a link or button"
+    "phrase": "an arrow icon after the text of a link or button"
   },
   "counter": {
     "suffix": ".tsx",

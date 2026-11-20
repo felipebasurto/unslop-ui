@@ -1,6 +1,6 @@
 # Taste
 
-What this team wants gone from its interface copy. Save it as `.unslop-ui/taste.md` at the project root and `/unslop-ui` reads it on every run. Edit the bullets, delete the ones you do not care about.
+What this team wants gone from its interface copy. Save it as `.unslop-ui/taste.md` at the project root and `/unslop-ui` reads it on every run. Edit the bullets, delete the ones you do not care about. Write them in any language.
 
 ## Bans
 
@@ -11,7 +11,7 @@ Each bullet is one more tell. The first three have a fixed id and a search patte
 - Middle dots between items
 - Emoji, including in docs
 - Gradients
-- The word "seamless"
+- The word "seamless", or its equivalent in your language
 
 ## Keep
 

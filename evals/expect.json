@@ -146,5 +146,35 @@
       }
     },
     "report_regex": ["(?i)off by taste file"]
+  },
+  "de": {
+    "why": "The same rules on German copy: filler, an eyebrow, numbering, a badge, reading instructions and an arrow go; the social proof and the action stay.",
+    "files": {
+      "index.html": {
+        "keep": ["Mehr als 10.000 Teams vertrauen Buch", "Rechnung erstellen", "href=\"/rechnungen/neu\""],
+        "cut": ["uppercase tracking-widest", "Wir stellen vor", "Endlich", "nahtlose", "nächsten Generation", ">NEU<", "01 //", "Klicken Sie auf die Schaltfläche unten", "Fahren Sie mit der Maus", "→"],
+        "no_new_numbers": true
+      }
+    }
+  },
+  "ja": {
+    "why": "The same rules on Japanese copy, a script with no case or word spaces: filler, an eyebrow, numbering, a badge, reading instructions and an arrow go; the social proof and the action stay.",
+    "files": {
+      "index.html": {
+        "keep": ["10,000以上のチームがブックを信頼しています", "請求書を作成", "href=\"/invoices/new\""],
+        "cut": ["uppercase tracking-widest", "ご紹介", "ついに", "シームレス", "次世代", ">新着<", "01 //", "下のボタンをクリックして", "マウスを重ねると", "→"],
+        "no_new_numbers": true
+      }
+    }
+  },
+  "ar": {
+    "why": "The same rules on Arabic copy, a right-to-left script: filler, an eyebrow, numbering, a badge, reading instructions and the trailing arrow go; the social proof and the action stay.",
+    "files": {
+      "index.html": {
+        "keep": ["أكثر من 10,000 فريق يثقون بكتاب", "إنشاء فاتورة", "href=\"/invoices/new\""],
+        "cut": ["uppercase tracking-widest", "نقدّم لكم", "أخيرًا", "الجيل القادم", "بسلاسة", ">جديد<", "01 //", "انقر على الزر أدناه", "مرّر المؤشر", "←"],
+        "no_new_numbers": true
+      }
+    }
   }
 }

@@ -90,7 +90,7 @@ Do not run it on a screen with nothing to cut. The verdict step exists so that a
 | U24 | Equal stat cards (report only) | Three identical cards, a big number in each |
 | U25 | States nobody handled (report only) | A list with no empty state, a form with nowhere to show an error |
 
-U24 and U25 are never edited, because fixing them means adding structure. They come back as tasks. A `↗` that marks a link leaving the site, and an arrow that is the whole control (a Next button), are not U21. The rules work on any language, and the counter's patterns cover English and Spanish.
+U24 and U25 are never edited, because fixing them means adding structure. They come back as tasks. A `↗` that marks a link leaving the site, and an arrow that is the whole control (a Next button), are not U21 (`←` counts in a right-to-left script).
 
 Everything that remains goes through the writing rules of [`/pstack:unslop`](https://github.com/cursor/plugins/tree/main/pstack) (em dashes, AI vocabulary, rule of three). If pstack is installed, `unslop-ui` reads its rules on every run and follows their updates. If not, it uses the condensed copy in [`references/unslop-fallback.md`](skills/unslop-ui/references/unslop-fallback.md). Either way it loads only the rules that apply to interface text.
 
@@ -255,7 +255,7 @@ The page from the annotated drawing above, rendered in a browser. Full files: [b
 
 ### By the numbers
 
-![Bar chart: the counter finds 35 tells in examples/before and 0 after one run](assets/counts.svg)
+![Bar chart: the counter finds 28 tells in examples/before and 0 after one run](assets/counts.svg)
 
 The counter only sees the patterns a regex can find. The run also removes the ones that need reading, such as subtitles, botsplaining and slogans, and its report counts those separately.
 
@@ -346,7 +346,7 @@ Optional: install [pstack](https://github.com/cursor/plugins/tree/main/pstack) s
 
 ## The counter
 
-`scripts/count_tells.py` is a regex counter for the patterns that can be found mechanically: U1, U2, U6, U9, U10, U11 (emojis and icon tiles), em dashes, filler vocabulary (unslop 7), and the common code forms of U12, U13, U15, U16, U21 and U23 (a title that names the chart type, "hover over", shadows, thick axis borders and gridlines, legends turned on). With `--surface` it also counts U17 to U20 and U26, and a taste file in `.unslop-ui/taste.md` (or `--taste PATH`) adds T1 to T3. The skill runs it before and after editing. You can run it on its own, and `--max` makes it fail a CI job:
+`scripts/count_tells.py` is a regex counter for structure: eyebrow styling (U1), numbering (U2, skipped inside an `<ol>`), separators (U6), badge shapes (U9), status dots (U10), emojis and icon tiles (U11), em dashes, shadows, thick axis borders and gridlines and legends turned on in chart configs (U15, U16), arrow glyphs on links (U21) and the same link text pointing at different places (U23). With `--surface` it also counts U17 to U20 and U26, and a taste file in `.unslop-ui/taste.md` (or `--taste PATH`) adds T1 to T3. The skill runs it before and after editing. You can run it on its own, and `--max` makes it fail a CI job:
 
 ```bash
 python3 skills/unslop-ui/scripts/count_tells.py src/
@@ -357,7 +357,7 @@ python3 skills/unslop-ui/scripts/count_tells.py --format github src/   # workflo
 
 It reads HTML, JSX, TSX, JS, TS, Vue, Svelte, Astro, Markdown and MDX, plus CSS, SCSS and Less for the styling rules, JSON for translation files, and Python for matplotlib and Plotly charts. It prints JSON with a count and up to five `file:line` locations per rule.
 
-It is a heuristic. It can't see the patterns that need reading (U3 to U5, U7, U8, U14, U22, U24, U25). It skips what usually isn't a tell: comments, loading skeletons, uppercase table headers, a lone "—" in an empty cell, a single "·" between two facts, "New" on a button. It still flags some legitimate cases, such as a badge that is wired to real data.
+It never reads words, so it gives the same result on copy in any language and script: German, Japanese and Arabic screens with the same structure get the same counts. What a string means is left to the agent, which reads the copy in whatever language it is written: U3 to U5, U7, U8, U12, U13, U14, U22, U24, U25, filler words and generic link names. It is a heuristic. It skips what usually isn't a tell: comments, loading skeletons, uppercase table headers, a lone "—" in an empty cell, a single "·" between two facts, a badge shape on a button, numbers inside an ordered list. It still flags some legitimate cases, such as a badge that is wired to real data.
 
 ## Development
 
@@ -380,7 +380,7 @@ The counter can only reward deleting, so the behavior of the skill itself has it
 | `links` | Arrows after link text and generic names go, one action gets one name; an icon-only button and a `↗` keep theirs |
 | `states` | Equal stat cards, a failure with no way out and a list with no empty state come back as tasks, with the file untouched |
 | `plan` | With `--plan` nothing is edited and the plan is shown |
-| `es` | The same rules on Spanish copy |
+| `es`, `de`, `ja`, `ar` | The same rules on Spanish, German, Japanese (no case, no word spaces) and Arabic (right to left) copy |
 | `surface-new` | With `--surface` a decorative edge bar and a scroll reveal go, including the hidden starting state; a bar on a real alert stays |
 | `taste` | A taste file bans exclamation marks, keeps a badge and turns U11 off, and all three hold |
 

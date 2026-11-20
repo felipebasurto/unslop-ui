@@ -4,8 +4,12 @@
 Usage: python3 count_tells.py [--surface] [--max N] [--taste PATH] [--format json|github] <file-or-folder> [...]
 
 Prints JSON: {rule: {"count": n, "examples": ["file:line", ...]}, "total": n}.
-Regex heuristic for before/after comparison. It misses tells that need
-reading (U3, U4, U5, U7, U8, U14, U22, U24, U25) and can flag legitimate cases.
+Regex heuristic for before/after comparison. It never reads words, so it works
+the same on copy in any language: it counts structure (classes, markup, glyphs,
+chart config). Everything that depends on what a string means (U3, U4, U5, U7,
+U8, U12, U13, U14, U22, U24, U25, filler words, generic names) is left to the
+agent, which reads the copy in whatever language it is written. The counter can
+flag legitimate cases too.
 --surface adds the visual rules U17 to U20 and U26 (gradients and glows,
 off-scale spacing, extra-heavy weights, motion, edge accent bars).
 --max N exits 1 when the total is above N, for CI.
@@ -13,7 +17,6 @@ A taste file (.unslop-ui/taste.md in the current folder, or --taste PATH)
 turns on T1 to T3 for the bans it lists (exclamation marks, uppercase text,
 middle dots) and switches off every rule its Off section lists.
 --format github prints workflow annotations instead of JSON, for CI.
-Patterns cover English and Spanish copy.
 """
 import argparse
 import bisect
@@ -75,20 +78,6 @@ def rx(pattern, flags=0):
     return lambda text: [m.start() for m in regex.finditer(text)]
 
 
-def once_per_line(find):
-    """One hit per line, for patterns where two matches are one sentence."""
-    def wrapped(text):
-        hits, last_line_start = [], -1
-        for pos in find(text):
-            line_start = text.rfind("\n", 0, pos) + 1
-            if line_start != last_line_start:
-                hits.append(pos)
-                last_line_start = line_start
-        return hits
-
-    return wrapped
-
-
 def enclosing_tag(text, pos):
     """Name of the tag opened last before pos, or ''."""
     start = text.rfind("<", max(0, pos - 400), pos + 1)
@@ -129,6 +118,14 @@ NUMBERING = (
     r"|padStart\(\s*2\s*,\s*['\"`]0['\"`]\s*\)"
     r"|>\s*0\{"
 )
+ORDERED_LIST = re.compile(r"<(ol)(?![\w.-])")
+
+
+def numbering(text):
+    """U2 hits outside an ordered list: inside an <ol> the order is real."""
+    return [p for p in rx(NUMBERING)(text) if open_element_before(text, p, ORDERED_LIST) is None]
+
+
 # In prose a backticked "01" is a code reference, not a label.
 NUMBERING_PROSE = (
     r">\s*0[1-9](?![/:.\-]\d)(?:\s|<|\.|/)"
@@ -165,32 +162,48 @@ def lone_separators(text):
     return [c[0] for c in separator_clusters(text) if len(c) == 1]
 
 
-# U9: a flavor word standing alone in a text node. Uppercase words count
-# anywhere except inside a control; "New", "Pro" and friends only inside
-# something badge-shaped, because <Button>New</Button> is an action.
-BADGE_NODE = re.compile(
-    r">\s*(?:(LIVE|NEW|BETA|AI|PRO|HOT|NUEVO|EN VIVO|PRÓXIMAMENTE)"
-    r"|(Live|New|Beta|Pro|Hot|Popular|Most popular|Coming soon|Featured|Trending|AI-powered|Powered by AI"
-    r"|Nuevo|Novedad|Destacado|Tendencia|Más popular|Próximamente|En vivo|Con IA|Impulsado por IA))\s*<"
-)
-BADGE_LITERAL = re.compile(r"['\"`](?:LIVE|NEW|BETA|HOT|NUEVO|EN VIVO)['\"`]")
+# U9: a badge. Structure only, so it reads the same in every language: a text
+# node inside a Badge, Pill, Chip or Tag component; a short text in a pill-shaped
+# element (rounded, padded); or a short ALL-CAPS word or two (letters only, so no
+# ids or codes) in a span, small, sup, mark or div. Scripts without case never
+# trip the last one. Whether the badge reflects real
+# state is the agent's call.
 CONTROL_TAGS = {
     "button", "Button", "a", "Link", "NavLink", "option", "label", "Label", "th", "td", "title",
     "MenuItem", "DropdownMenuItem", "SelectItem", "CommandItem", "TabsTrigger", "Tab",
     "h1", "h2", "h3", "h4", "h5", "h6",
 }
-BADGE_TAGS = {"span", "sup", "small", "mark", "Badge", "Pill", "Chip", "Tag"}
+BADGE_COMPONENTS = {"Badge", "Pill", "Chip", "Tag"}
+SHORT_ELEMENT = re.compile(
+    r"<(?P<tag>span|small|sup|mark|Badge|Pill|Chip|Tag)\b(?P<attrs>[^<>]*)>(?P<text>[^<>{}]{1,30})</(?P=tag)>"
+)
+SHORT_TEXT_NODE = re.compile(r">(?P<text>[^<>{}]{2,30})<")
+LETTERS_AND_SPACES = re.compile(r"[^\W\d_]+(?: [^\W\d_]+)*")
+# Where short ALL-CAPS text is a badge and not a code, an id, an acronym or a caption.
+CAPS_BADGE_TAGS = {"span", "small", "sup", "mark", "div"}
+PILL_CLASSES = re.compile(r"\brounded(?:-(?:md|lg|xl|2xl|full))?\b")
+PADDED = re.compile(r"(?<![\w:-])px-")
 
 
-def badge_words(text):
-    hits = [m.start() for m in BADGE_LITERAL.finditer(text)]
-    for m in BADGE_NODE.finditer(text):
-        tag = enclosing_tag(text, m.start())
-        if tag in CONTROL_TAGS:
+def short_phrase(text):
+    words = text.split()
+    return 1 <= len(words) <= 4 and any(c.isalpha() for c in text)
+
+
+def badges(text):
+    hits = set()
+    for m in SHORT_ELEMENT.finditer(text):
+        if not short_phrase(m.group("text")):
             continue
-        if m.group(1) or tag in BADGE_TAGS:
-            hits.append(m.start())
-    return hits
+        attrs = m.group("attrs")
+        if m.group("tag") in BADGE_COMPONENTS or (PILL_CLASSES.search(attrs) and PADDED.search(attrs)):
+            hits.add(m.start("text") - 1)
+    for m in SHORT_TEXT_NODE.finditer(text):
+        caps = m.group("text").strip()
+        if LETTERS_AND_SPACES.fullmatch(caps) and caps.isupper() and len(caps.split()) <= 3 and len(caps.replace(" ", "")) >= 2:
+            if enclosing_tag(text, m.start()) in CAPS_BADGE_TAGS:
+                hits.add(m.start())
+    return sorted(hits)
 
 
 # U10: a small round element, or a pulse that is not a loading skeleton.
@@ -246,17 +259,6 @@ def icon_tiles(text):
     return hits
 
 
-CHART_TYPE_TITLE = (
-    r"\b(?:bar|line|pie|area|scatter|donut|column) (?:chart|graph|plot) (?:of|showing|for)\b"
-    r"|\bgr[aá]fic[oa] de (?:barras|l[ií]neas|sectores|[aá]reas|dispersi[oó]n|columnas|tarta|pastel|anillo) (?:de|del|que muestra|sobre|con)\b"
-)
-READING_INSTRUCTIONS = (
-    r"\beach (?:bar|point|dot|slice) (?:represents|shows|is)\b|\beach (?:line|column|row) (?:represents|shows)\b"
-    r"|\bhover (?:over|for|to see)\b"
-    r"|\bcada (?:barra|punto|sector) (?:representa|muestra|es)\b|\bcada (?:l[ií]nea|columna|fila) (?:representa|muestra)\b"
-    r"|\b(?:pasa|coloca|posiciona) el (?:cursor|rat[oó]n|mouse)\b"
-)
-
 # U15 and U16 run on the whole file, so a config formatted over several
 # lines counts the same as a one-liner.
 SCAFFOLDING = (
@@ -277,11 +279,11 @@ def em_dashes(text):
     return [m.start() for m in EM_DASH.finditer(LONE_DASH.sub(blank, text))]
 
 
-# T1: an exclamation mark ending a word in visible text: a text node, a quoted
+# T1: an exclamation mark (! or the fullwidth ！) ending a word in visible text: a text node, a quoted
 # string or a line of prose. "!==", "!important" and a bare "!" are not it.
-BANG_TEXT = re.compile(r"(?<![=-])>[^<>{}\n;]*?\w!(?=\s|<|$)", re.M)
-BANG_STRING = re.compile(r"""(["'`])[^"'`\n]*?\w!\1""")
-BANG_PROSE = re.compile(r"\w!(?=\s|$)", re.M)
+BANG_TEXT = re.compile(r"(?<![=-])>[^<>{}\n;]*?\w(?:!(?=\s|<|$)|！)", re.M)
+BANG_STRING = re.compile(r"""(["'`])[^"'`\n]*?\w[!！]\1""")
+BANG_PROSE = re.compile(r"\w(?:!(?=\s|$)|！)", re.M)
 
 
 def exclamations(text):
@@ -335,21 +337,22 @@ def tag_end(text, start):
     return None
 
 
-def open_link_before(text, pos):
-    """Index just after the opening tag of the link-like element still open at pos, or None."""
-    for m in reversed(list(LINK_START.finditer(text, max(0, pos - LOOKBACK), pos))):
+def open_element_before(text, pos, start=LINK_START):
+    """Index just after the opening tag of the element (link-like by default) still open at pos, or None."""
+    for m in reversed(list(start.finditer(text, max(0, pos - LOOKBACK), pos))):
         end = tag_end(text, m.start())
         if end and not end[1] and end[0] <= pos and not re.search(r"</%s\s*>" % re.escape(m.group(1)), text[end[0]:pos]):
             return end[0]
     return None
 
 
-# U21: an arrow glyph on a link or button, or an arrow icon after its text.
+# U21: an arrow glyph (→, or ← in a right-to-left script) on a link or button, or an
+# arrow icon after its text.
 # An arrow that is the whole control (a Next button), one beside screen-reader
 # text only, and a bare glyph in running text are not it.
-ARROW = re.compile(r"→|&rarr;|&#8594;|&#x2192;")
+ARROW = re.compile(r"[→←]|&[lr]arr;|&#859[24];|&#x219[02];")
 ARROW_ICON = re.compile(r"<(?:Arrow(?:Right|Forward|LongRight)\w*|IconArrowRight\w*|MoveRight\w*)\b")
-ARROW_MARKDOWN = re.compile(r"\[[^\]\n]{0,120}?[^\W\d_]\s*→\s*\]\(")
+ARROW_MARKDOWN = re.compile(r"\[[^\]\n]{0,120}?[^\W\d_]\s*[→←]\s*\]\(")
 STRING_OPENERS = "=:([,{?"
 STRING_CLOSERS = ",)]};:/>\r\n"
 
@@ -377,7 +380,7 @@ def arrow_ends_string(text, arrow):
 def arrow_links(text, strings=True):
     hits = set()
     for m in ARROW.finditer(text):
-        end = open_link_before(text, m.start())
+        end = open_element_before(text, m.start())
         if end is not None:
             inner = re.sub(r"<[^>]*>|\{+[^{}]*\}+", " ", HIDDEN_TEXT.sub(" ", text[end:m.start()]))
             if HAS_WORDS.search(inner):
@@ -403,56 +406,32 @@ def arrow_links_in_prose(text):
     return arrow_links(text, strings=False)
 
 
-# U23: a link or button named by a generic phrase, so the name says nothing
-# about where it goes or what it does.
-VAGUE_LABELS = (
-    r"click here|here|learn more|read more|see more|submit|m[aá]s informaci[oó]n|saber m[aá]s|leer m[aá]s|ver m[aá]s"
-    r"|haz clic aqu[ií]|pulsa aqu[ií]|aqu[ií]"
+# U23: the same link text pointing at different places, so a screen reader
+# listing the links cannot tell them apart. Words are never matched, so it works
+# in any language; a single generic label ("Learn more" once) is left to the agent.
+LINK_WITH_TEXT = re.compile(
+    r"<(?P<tag>%s)\b(?P<attrs>(?:[^<>{}]|\{[^{}]*\})*)>(?P<text>[^<>{}]{1,80}?)</(?P=tag)>" % LINK_NAME
 )
-VAGUE_LABEL = re.compile(r">\s*(?:%s)\s*<" % VAGUE_LABELS, re.I)
-VAGUE_MARKDOWN = re.compile(r"\[\s*(?:%s)\s*\]\(" % VAGUE_LABELS, re.I)
+HREF = re.compile(r"""\b(?:href|to)\s*=\s*(?:"([^"]*)"|'([^']*)'|\{([^{}]*)\})""")
+MARKDOWN_LINK = re.compile(r"(?<!!)\[([^\]\n]{1,80})\]\(([^)\s]+)[^)]*\)")
 
 
-def vague_labels(text):
-    return [m.start() for m in VAGUE_LABEL.finditer(text) if open_link_before(text, m.start() + 1) is not None]
-
-
-def vague_labels_in_prose(text):
-    return vague_labels(text) + [m.start() for m in VAGUE_MARKDOWN.finditer(text)]
-
-
-# unslop 7: filler vocabulary in a text node, a string or a line of prose.
-VOCABULARY_WORDS = (
-    r"seamless(?:ly)?|effortless(?:ly)?|cutting[- ]edge|next[- ]gen(?:eration)?|state[- ]of[- ]the[- ]art"
-    r"|game[- ]?chang(?:er|ing)|supercharg(?:e|es|ed|ing)|revolutioni[sz](?:e|es|ed|ing)"
-    r"|empower(?:s|ed|ing)?|unlock(?:s|ed|ing)? the (?:power|potential)|elevat(?:e|es|ed|ing) your"
-    r"|leverag(?:e|es|ed|ing)(?= (?:your|our|the|ai|data|cutting))|delv(?:e|es|ed|ing)|robust"
-    r"|world[- ]class|best[- ]in[- ]class|to the next level"
-    r"|sin fisuras|sin esfuerzo|de vanguardia|de [uú]ltima generaci[oó]n"
-    r"|revolucion(?:a|an|ar|ario|aria|arios|arias)|al siguiente nivel|soluci[oó]n integral"
-    r"|potencia tu|impulsa tu|libera el poder|a otro nivel"
-)
-VOCABULARY = re.compile(r"(?<![\w-])(?:%s)(?![\w-])" % VOCABULARY_WORDS, re.I)
-BRACES = re.compile(r"\{+[^{}]*\}+")
-TEXT_NODE = re.compile(r">((?:[^<>{}]|\{+[^{}]*\}+){1,2000})<")
-STRING_LITERAL = re.compile(r"""(["'`])((?:(?!\1)[^\n\\]){4,300}?)\1""")
-# Tests, specs and docstrings quote filler on purpose.
-TEST_PATH = re.compile(r"(?:^|[\\/])(?:__tests__|tests?|specs?)[\\/]|\.(?:test|spec)\.|(?:^|[\\/])test_[^\\/]*\.py$|_test\.py$")
-
-
-def vocabulary_in_text(text):
-    hits = set()
-    for pattern, group, blank_braces in ((TEXT_NODE, 1, True), (STRING_LITERAL, 2, False)):
-        for m in pattern.finditer(text):
-            if pattern is STRING_LITERAL and text[m.start() - 2:m.start()] == m.group(1) * 2:
-                continue  # a triple-quoted docstring
-            segment = BRACES.sub(lambda b: " " * len(b.group(0)), m.group(group)) if blank_braces else m.group(group)
-            hits.update(m.start(group) + v.start() for v in VOCABULARY.finditer(segment))
+def repeated_link_labels(text):
+    links = []
+    for m in LINK_WITH_TEXT.finditer(text):
+        href = HREF.search(m.group("attrs"))
+        links.append((m.start(), m.group("text"), next((g for g in href.groups() if g is not None), "") if href else ""))
+    links += [(m.start(), m.group(1), m.group(2)) for m in MARKDOWN_LINK.finditer(text)]
+    groups = {}
+    for pos, label, target in links:
+        label = " ".join(label.split()).casefold()
+        if HAS_WORDS.search(label):
+            groups.setdefault(label, []).append((pos, target))
+    hits = []
+    for items in groups.values():
+        if len(items) > 1 and len({target for _, target in items}) > 1:
+            hits += [pos for pos, _ in sorted(items)[1:]]
     return sorted(hits)
-
-
-def vocabulary_in_prose(text):
-    return [m.start() for m in VOCABULARY.finditer(text)]
 
 
 # U26: a colored border of 3px or more on the left edge of a box. A neutral
@@ -523,30 +502,23 @@ def off_scale(text):
 MARKUP = {"markup", "prose"}
 RULES = [
     ("U1 eyebrow", eyebrows, MARKUP | {"style"}),
-    ("U2 decorative numbering", rx(NUMBERING), {"markup"}),
+    ("U2 decorative numbering", numbering, {"markup"}),
     ("U2 decorative numbering", rx(NUMBERING_PROSE), {"prose"}),
     ("U6 status string", status_strings, TEXT),
-    ("U9 badge word", badge_words, MARKUP | {"data"}),
+    ("U9 badge", badges, {"markup"}),
     ("U10 status dot", status_dots, MARKUP),
     ("U11 emoji", rx(EMOJI), ALL),
     ("U11 icon tile", icon_tiles, MARKUP),
-    ("U12 chart-type title", rx(CHART_TYPE_TITLE, re.I), TEXT),
-    ("U13 reading instructions", once_per_line(rx(READING_INSTRUCTIONS, re.I)), TEXT),
     ("U15 chart scaffolding", rx(SCAFFOLDING), MARKUP),
     ("U15 chart scaffolding", rx(SCAFFOLDING_PY), {"python"}),
     ("U16 legend", rx(LEGEND), MARKUP),
     ("U16 legend", rx(LEGEND_PY), {"python"}),
     ("U21 arrow link", arrow_links, {"markup", "data", "python"}),
     ("U21 arrow link", arrow_links_in_prose, {"prose"}),
-    ("U23 vague link label", vague_labels, {"markup"}),
-    ("U23 vague link label", vague_labels_in_prose, {"prose"}),
-    ("unslop 7 AI vocabulary", vocabulary_in_text, {"markup", "python"}),
-    ("unslop 7 AI vocabulary", vocabulary_in_prose, {"prose", "data"}),
+    ("U23 repeated link label", repeated_link_labels, {"markup", "prose"}),
     ("unslop 13 em dash", em_dashes, TEXT),
 ]
 STYLED = MARKUP | {"style"}
-# Rules that skip test and spec files.
-SKIP_IN_TESTS = {"unslop 7 AI vocabulary"}
 # Counted only when the taste file bans them.
 TASTE_RULES = {
     "exclamation": [
@@ -648,8 +620,6 @@ def count(targets, surface=False, bans=(), off=()):
         line_starts = [m.end() for m in re.finditer(r"\n", text)]
         for name, find, kinds in rules:
             if kind not in kinds:
-                continue
-            if name in SKIP_IN_TESTS and TEST_PATH.search(path):
                 continue
             entry = results[name]
             for pos in sorted(find(text)):

@@ -16,11 +16,11 @@ If the target above is empty or still shows a placeholder, take it from the user
 
 Scope: copy, decoration, charts, links and states by default (U1 to U16 and U21 to U23, plus U24 and U25, which are report only). If the arguments include `--surface`, also apply U17 to U20 and U26 (gradients and glows, off-scale spacing, heavy weights, motion, edge accent bars), using the values in [references/tokens.md](references/tokens.md). If they include `--plan`, change nothing: work through the procedure up to the verdict, show the plan and wait for the owner. Strip `--surface` and `--plan` from the target before reading paths.
 
-The rules apply in any language: judge Spanish, French or German copy by the same tests. The search patterns cover English and Spanish.
+The rules apply in any language and any script: judge the copy in the language it is written in, by the same tests. The search patterns never match words, so they behave the same on every language: they look at structure (classes, markup, glyphs, chart config). What a string means is your call, not theirs.
 
 ## Writing rules from /pstack:unslop
 
-Apply these to every sentence you keep or write. Cite them as "unslop 13", so they don't read as U rules.
+Apply these to every sentence you keep or write. Cite them as "unslop 13", so they don't read as U rules. They are written with English examples. For copy in another language, apply their intent in that language and skip what only makes sense in English, such as its word lists and idioms.
 
 Find the rules before you edit anything:
 
@@ -34,11 +34,11 @@ Where these and the UI rules disagree, the UI rules win:
 
 ## Cut first, write little
 
-Deleting is the default fix. Where a rule says rewrite (U3, U4, U8, U12, U22, U23), the new text may state only what the source already shows: the product's own copy, the names of its features, the data bound to the screen. Never add a number, a speed, an integration or a benefit you cannot point to in the code. With nothing true to say, delete the string, or leave it and list it as a task.
+Deleting is the default fix. Where a rule says rewrite (U3, U4, U8, U12, U22, U23), the new text may state only what the source already shows: the product's own copy, the names of its features, the data bound to the screen. Never add a number, a speed, an integration or a benefit you cannot point to in the code. With nothing true to say, delete the string, or leave it and list it as a task. Write a replacement in the language of the string it replaces, with words the screen already uses.
 
 ## UI rules
 
-Ids are stable. Cite them as U1 to U26 in the report.
+Ids are stable. Cite them as U1 to U26 in the report. The examples are in English. Every rule applies to copy in any language and script: read the example, then judge the same pattern in the language in front of you.
 
 ### Interface copy
 
@@ -71,7 +71,7 @@ The test for real state, in U6, U9 and U10: the element renders from a condition
 
 ### Links, actions and states
 
-- **U21. Arrow on links and buttons.** A `→` glyph or an arrow icon after the text of a link or button ("Learn more →", "Get started" followed by `<ArrowRight />`). Delete it: the text already says where it goes, and a screen reader reads the glyph aloud. An arrow stays when it carries meaning: `↗` on a link that leaves the site, an icon-only Next or Previous button with an `aria-label` (also when the only text beside it is screen-reader-only), a breadcrumb or step separator.
+- **U21. Arrow on links and buttons.** A `→` glyph (`←` in a right-to-left script) or an arrow icon after the text of a link or button ("Learn more →", "Get started" followed by `<ArrowRight />`). Delete it: the text already says where it goes, and a screen reader reads the glyph aloud. An arrow stays when it carries meaning: `↗` on a link that leaves the site, an icon-only Next or Previous button with an `aria-label` (also when the only text beside it is screen-reader-only), a breadcrumb or step separator.
 - **U22. One action, one name.** The same action called different things in different places ("Get started", "Start now" and "Begin" all leading to signup), or a button whose result uses another verb ("Publish", then a toast that says "Saved"). Use the name the product already uses most, everywhere. It applies to labels of the same action (signing up, starting a trial). A navigation label and a call to action that point at the same page ("Voyages" in the menu, "Explore voyages" in the hero) do different jobs and keep their own names, and so do two actions with different destinations. Rename only labels in the files you are editing. Names that live elsewhere go in the report as a task.
 - **U23. Generic link and button names.** "Click here", "Learn more", "Read more", "Submit": a phrase that carries no information about where it goes or what it does, which a screen reader lists with no context. Replace only these, and their equivalents in other languages, with the destination or the result ("Read the pricing guide", "Save API key"), using only what the code shows: the `href`, the page it opens, the form's purpose. With nothing to go on, leave it and list it as a task. A label that already says what it does ("Begin your journey", "Explore voyages", "Save changes") is not U23, even when it differs from the page title: leave it. One "Learn more" right after its own paragraph is borderline. The same label twice on a page is the tell.
 - **U24. Equal stat cards.** A row of identical cards that each hold a big number and a small label, so every figure is equally loud. Report only: name the figure the screen exists to show, and leave the layout to the owner.
@@ -129,7 +129,7 @@ Copy this checklist and track it:
 - [ ] 7. Report
 ```
 
-**Count.** Run the Grep patterns in [references/finding-tells.md](references/finding-tells.md) over the target and tally the hits per rule. They are regex candidates, and they find only the mechanical forms of U1, U2, U6, U9 to U13, U15, U16, U21, U23, filler vocabulary and the em dash. U3, U4, U5, U7, U8, U14, U22, U24 and U25 need reading, and the patterns see only the common code forms of the rest. They flag legitimate cases too. A count above 0 after editing is fine when every remaining hit is one you kept on purpose. Never delete something legitimate to reach 0. Your reading in step 2 is the real check. Use the same patterns for the second count so the before and after numbers compare.
+**Count.** Run the Grep patterns in [references/finding-tells.md](references/finding-tells.md) over the target and tally the hits per rule. They are regex candidates for structure: eyebrow styling, numbering, separators, badge shapes, status dots, emoji, icon tiles, arrow glyphs, the same link text pointing at different places, chart config and em dashes. They never match words, so anything that depends on what words mean needs your reading, in any language: U3, U4, U5, U7, U8, U12, U13, U14, U22, U24, U25, filler words and generic link names. They flag legitimate cases too. A count above 0 after editing is fine when every remaining hit is one you kept on purpose. Never delete something legitimate to reach 0. Your reading in step 2 is the real check. Use the same patterns for the second count so the before and after numbers compare.
 
 **Verdict**, from the count and your reading:
 
@@ -150,7 +150,7 @@ If you can render the screen (a dev server is running, or you have browser tools
 
 **Plan (only with `--plan`).** Stop after the verdict and change nothing. Show the table with the Before column only, then one line per planned change (`file:line  U1  delete "INTRODUCING LEDGER"`), each rewrite as old → new, what you would keep on purpose and the tasks. End with one question: apply this plan, or change it? Edit only after the owner answers, and apply the plan exactly as they amended it.
 
-**Report.** The table, then up to three lists, and nothing else. When a taste file switches rules off, one line goes above the table: `Off by taste file: U11, unslop 13`. Use your tally from steps 1 and 2. Kept is how many of the After hits you left on purpose.
+**Report.** Write it in the language the owner used to ask you, and quote screen copy as it is, untranslated. The table, then up to three lists, and nothing else. When a taste file switches rules off, one line goes above the table: `Off by taste file: U11, unslop 13`. Use your tally from steps 1 and 2. Kept is how many of the After hits you left on purpose.
 
 | Rule | Before | After | Kept |
 |---|---|---|---|

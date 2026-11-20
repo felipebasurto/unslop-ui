@@ -48,14 +48,11 @@ class CounterTest(unittest.TestCase):
             "U1 eyebrow": 5,
             "U2 decorative numbering": 3,
             "U6 status string": 2,
-            "U9 badge word": 3,
+            "U9 badge": 2,
             "U10 status dot": 2,
             "U11 emoji": 6,
-            "U12 chart-type title": 1,
-            "U13 reading instructions": 1,
             "U15 chart scaffolding": 4,
             "U16 legend": 1,
-            "unslop 7 AI vocabulary": 4,
             "unslop 13 em dash": 3,
         }
         for rule, n in expected.items():
@@ -140,8 +137,76 @@ export function Legit({ rows, loading, progress }) {
         self.assertEqual(count_source(source, ".tsx")["U1 eyebrow"], 1)
 
     def test_counts_badges_by_shape(self):
-        source = "<Badge>Most popular</Badge>\n<span>Beta</span>\n<div>NEW</div>\n<Button>New</Button>\n"
-        self.assertEqual(count_source(source, ".tsx")["U9 badge word"], 3)
+        source = (
+            "<Badge>Most popular</Badge>\n<span>NEW</span>\n<div>NEW</div>\n<Button>New</Button>\n"
+            '<span className="rounded-full bg-sky-100 px-2 text-xs">Beta</span>\n<span>Beta</span>\n<td>PRO</td>\n'
+        )
+        self.assertEqual(count_source(source, ".tsx")["U9 badge"], 4)
+
+    def test_badges_read_the_same_in_every_script(self):
+        source = (
+            "<Badge>新着</Badge>\n"
+            '<span class="rounded-full px-2 text-xs">جديد</span>\n'
+            "<span>NEU</span>\n<span>НОВОЕ</span>\n<span>NOUVEAU</span>\n"
+        )
+        self.assertEqual(count_source(source, ".html")["U9 badge"], 5)
+        quiet = (
+            "<span>こんにちは</span>\n<span>مرحبا بكم</span>\n<span>Hello there</span>\n"
+            "<h2>NEW</h2>\n<button>NUEVO</button>\n<span>2026</span>\n"
+            '<code class="inline">REF-M-214</code>\n<span>REF-214</span>\n<p class="who">CORVUS</p>\n<span>NASA</span> is not a word here\n'
+        )
+        self.assertEqual(count_source(quiet, ".html")["U9 badge"], 1)
+
+    def test_the_same_structure_gets_the_same_counts_in_every_language(self):
+        counts = {}
+        for language in ("es", "de", "ja", "ar"):
+            counts[language] = count(os.path.join(ROOT, "evals", "fixtures", language))
+        self.assertEqual(len({json.dumps(c, sort_keys=True) for c in counts.values()}), 1)
+        self.assertEqual(counts["ja"]["U21 arrow link"], 1)
+        self.assertEqual(counts["ar"]["U21 arrow link"], 1)
+        self.assertEqual(counts["ar"]["total"], 4)
+
+    def test_words_are_never_matched_in_any_language(self):
+        source = (
+            "<h2>Bar chart of monthly revenue</h2>\n<p>Each bar represents one month. Hover over a bar.</p>\n"
+            "<p>Seamlessly manage a robust, cutting-edge workflow.</p>\n"
+            '<a href="/x">Click here</a>\n<button>Submit</button>\n'
+            "<h2>月次売上の棒グラフ</h2>\n<p>各棒は1か月を表します。</p>\n"
+            "<h2>مخطط شريطي للإيرادات الشهرية</h2>\n<p>Gráfico de barras de ingresos. Pasa el cursor por encima.</p>\n"
+            "<p>Sin fisuras, nahtlos, 無縫</p>\n"
+        )
+        counts = count_source(source, ".html")
+        self.assertEqual(counts["total"], 0)
+        for gone in ("U12 chart-type title", "U13 reading instructions", "unslop 7 AI vocabulary"):
+            self.assertNotIn(gone, counts)
+
+    def test_counts_the_same_link_text_pointing_at_different_places(self):
+        source = (
+            '<a href="/pricing">Learn more</a>\n<a href="/docs">Learn  more</a>\n<Link href="/blog">LEARN MORE</Link>\n'
+            '<a href="/a">詳細</a>\n<a href="/b">詳細</a>\n'
+            '<a href="/same">Docs</a>\n<a href="/same">Docs</a>\n'
+            '<button>Save</button>\n<button>Save</button>\n<a href="/only">Once</a>\n'
+        )
+        self.assertEqual(count_source(source, ".tsx")["U23 repeated link label"], 3)
+        self.assertEqual(count_source("[Read more](/a) and [Read more](/b)\n", ".md")["U23 repeated link label"], 1)
+        self.assertEqual(count_source("[Docs](/a), [docs](/a)\n", ".md")["U23 repeated link label"], 0)
+        self.assertEqual(count_source("![Logo](./a.png) and ![Logo](./b.png)\n", ".md")["U23 repeated link label"], 0)
+
+    def test_numbering_inside_an_ordered_list_is_real_order(self):
+        inside = '<ol className="grid"><li><span className="font-mono">01</span> Install</li><li><span>02</span> Log in</li></ol>\n'
+        self.assertEqual(count_source(inside, ".tsx")["U2 decorative numbering"], 0)
+        outside = '<ol><li>One</li></ol>\n<div><span>01</span> Features</div>\n'
+        self.assertEqual(count_source(outside, ".tsx")["U2 decorative numbering"], 1)
+
+    def test_exclamation_ban_covers_the_fullwidth_mark(self):
+        with tempfile.TemporaryDirectory() as folder:
+            path = os.path.join(folder, "a.html")
+            taste = os.path.join(folder, "taste.md")
+            with open(path, "w", encoding="utf-8") as f:
+                f.write("<p>ようこそ！</p>\n<p>Welcome back!</p>\n<p>こんにちは。</p>\n")
+            with open(taste, "w", encoding="utf-8") as f:
+                f.write("## Bans\n\n- Exclamation marks\n")
+            self.assertEqual(count("--taste", taste, path)["T1 exclamation mark"], 2)
 
     def test_counts_a_chain_once_and_skips_a_single_separator(self):
         source = (
@@ -187,16 +252,15 @@ export const options = {
     def test_counts_python_charts(self):
         source = (
             "# 🚀 a comment — ignored\n"
-            'ax.set_title("📈 Bar chart of monthly revenue")\n'
+            'ax.set_title("📈 Monthly revenue")\n'
             "ax.grid(True, linewidth=2)\n"
             "ax.legend()\n"
         )
         counts = count_source(source, ".py")
         self.assertEqual(counts["U11 emoji"], 1)
-        self.assertEqual(counts["U12 chart-type title"], 1)
         self.assertEqual(counts["U15 chart scaffolding"], 1)
         self.assertEqual(counts["U16 legend"], 1)
-        self.assertEqual(counts["total"], 4)
+        self.assertEqual(counts["total"], 3)
 
     def test_counts_markdown_headings_and_lists(self):
         counts = count_source("# 🚀 Welcome — to the app\n* ✨ Feature one\n", ".md")
@@ -297,39 +361,6 @@ export const options = {
         )
         self.assertEqual(count_source(source, ".tsx")["U21 arrow link"], 0)
 
-    def test_counts_generic_link_labels_only_on_links_and_buttons(self):
-        source = (
-            '<a href="/x">Click here</a>\n<button type="submit">Submit</button>\n'
-            '<Link href="/docs">Learn more</Link>\n<a href="/es">Más información</a>\n'
-        )
-        self.assertEqual(count_source(source, ".tsx")["U23 vague link label"], 4)
-        legit = '<h2>Here</h2>\n<span>Learn more</span>\n<a href="/p">Read the pricing guide</a>\n<button>Submit order</button>\n'
-        self.assertEqual(count_source(legit, ".tsx")["U23 vague link label"], 0)
-
-    def test_counts_filler_vocabulary_in_text_but_not_in_code(self):
-        source = (
-            '<p>Seamlessly manage a robust, cutting-edge workflow.</p>\n'
-            'const hero = "Empower your team";\n'
-            'const robustParse = () => seamlessScroll;\n'
-            '<div className="seamless-grid robust-card" />\n'
-            '// seamless\n'
-        )
-        self.assertEqual(count_source(source, ".tsx")["unslop 7 AI vocabulary"], 4)
-        self.assertEqual(count_source("We leverage your data. Leverage is also a finance term.\n", ".md")["unslop 7 AI vocabulary"], 1)
-        self.assertEqual(count_source('{"sub": "Gestiona tu dinero sin fisuras"}\n', ".json")["unslop 7 AI vocabulary"], 1)
-
-    def test_counts_spanish_copy(self):
-        source = (
-            '<span>NUEVO</span>\n<span class="chip">Destacado</span>\n<button>Nuevo</button>\n'
-            '<h2>Gráfico de barras de ingresos</h2>\n<p>Cada barra representa un mes. Pasa el cursor para ver el valor.</p>\n'
-            '<p>Una solución integral de última generación.</p>\n'
-        )
-        counts = count_source(source, ".html")
-        self.assertEqual(counts["U9 badge word"], 2)
-        self.assertEqual(counts["U12 chart-type title"], 1)
-        self.assertEqual(counts["U13 reading instructions"], 1)
-        self.assertEqual(counts["unslop 7 AI vocabulary"], 2)
-
     def test_counts_edge_accent_bars_with_surface(self):
         source = (
             '<div className="rounded-lg border-l-4 border-indigo-500 p-4">a</div>\n'
@@ -372,7 +403,7 @@ export const options = {
         lines = result.stdout.splitlines()
         self.assertTrue(lines[0].startswith("::warning file=examples/before/"), lines[0])
         self.assertRegex(lines[0], r",line=\d+,title=U1 eyebrow::")
-        self.assertEqual(lines[-1], "unslop-ui: 35 possible tells")
+        self.assertEqual(lines[-1], "unslop-ui: 28 possible tells")
         clean = run(COUNTER, "--format", "github", "--max", "0", os.path.join(ROOT, "examples", "after"))
         self.assertEqual((clean.returncode, clean.stdout.strip()), (0, "unslop-ui: 0 possible tells"))
 
@@ -407,31 +438,6 @@ export const options = {
         source = '<a className="' + "px-4 " * 200 + '" href="/x">Learn more →</a>\n'
         self.assertEqual(count_source(source, ".tsx")["U21 arrow link"], 1)
 
-    def test_python_docstrings_are_not_copy(self):
-        source = '"""A robust, seamless helper."""\ntitle = "A robust chart"\n'
-        self.assertEqual(count_source(source, ".py")["unslop 7 AI vocabulary"], 1)
-
-    def test_generic_labels_are_found_in_nested_and_framework_markup(self):
-        source = (
-            '<a href="/x"><span>Learn more</span></a>\n<Button><Icon /> Submit</Button>\n'
-            '<RouterLink>Read more</RouterLink>\n<router-link>Click here</router-link>\n<Anchor>here</Anchor>\n'
-        )
-        self.assertEqual(count_source(source, ".tsx")["U23 vague link label"], 5)
-        self.assertEqual(count_source("See [click here](https://x.dev) or [Learn more](/x).\n", ".md")["U23 vague link label"], 2)
-
-    def test_vocabulary_is_found_around_expressions_and_with_spaces_but_not_in_tests(self):
-        source = "<p>Welcome back, {name}. Seamlessly manage your projects.</p>\n<p>A game changer, state of the art and world class.</p>\n"
-        self.assertEqual(count_source(source, ".tsx")["unslop 7 AI vocabulary"], 4)
-        self.assertEqual(count_source('<p>{{ name }} makes a cutting edge tool</p>\n', ".vue").get("unslop 7 AI vocabulary"), 1)
-        with tempfile.TemporaryDirectory() as folder:
-            for name in ("card.test.tsx", "card.spec.ts"):
-                with open(os.path.join(folder, name), "w", encoding="utf-8") as f:
-                    f.write('it("is robust and seamless", () => {});\n')
-            os.mkdir(os.path.join(folder, "tests"))
-            with open(os.path.join(folder, "tests", "test_card.py"), "w", encoding="utf-8") as f:
-                f.write('"""A robust test."""\n')
-            self.assertEqual(count(folder)["unslop 7 AI vocabulary"], 0)
-
     def test_edge_bars_with_side_colors_variants_and_inline_styles(self):
         source = (
             '<div className="border-l-4 border-l-indigo-500">a</div>\n<div className="border-l-4 border-[#6366f1]">b</div>\n'
@@ -445,11 +451,6 @@ export const options = {
         )
         self.assertEqual(count_source(legit, ".tsx", "--surface")["U26 edge accent bar"], 0)
 
-    def test_chart_reading_instructions_need_a_chart_word_for_lines_and_rows(self):
-        counts = count_source("Cada línea es un comando.\nCada fila es un pedido.\nEach line is a step.\n", ".md")
-        self.assertEqual(counts["U13 reading instructions"], 0)
-        self.assertEqual(count_source("Cada punto es un cliente.\n", ".md")["U13 reading instructions"], 1)
-
     def test_off_reads_only_the_leading_ids_and_taste_survives_odd_files(self):
         source = "<h1>🚀 Hi — there!</h1>\n"
         with tempfile.TemporaryDirectory() as folder:
@@ -462,7 +463,7 @@ export const options = {
             counts = count("--taste", taste, path)
             self.assertNotIn("U11 emoji", counts)
             self.assertIn("U1 eyebrow", counts)
-            self.assertIn("U9 badge word", counts)
+            self.assertIn("U9 badge", counts)
             self.assertIn("T1 exclamation mark", counts)
             with open(taste, "wb") as f:
                 f.write(b"\xef\xbb\xbf## Bans\n\n- Exclamation marks\n\xff\xfe\n")
@@ -651,7 +652,7 @@ class EvalFixturesTest(unittest.TestCase):
         self.assertEqual(evals_run.DEFAULT_PROMPT, "/unslop-ui-eval .")
 
     def test_incidents_fail_on_unknown_rules_and_on_unexpected_counts(self):
-        incident = evals_run.load_incidents()[0]
+        incident = next(i for i in evals_run.load_incidents() if i["id"] == "button-new-is-not-a-badge")
         typo = {**incident, "counter": {**incident["counter"], "expect": {"U9 badge wrod": 0}}}
         self.assertTrue(any("not a rule this run counts" in f for f in evals_run.check_incident(typo)))
         flagless = {**incident, "counter": {"suffix": ".tsx", "source": "<div className=\"border-l-4 border-indigo-500\" />\n", "expect": {"U26 edge accent bar": 0}}}
@@ -690,11 +691,11 @@ class IncidentTest(unittest.TestCase):
             self.assertIsInstance(incident["counter"]["expect"], dict)  # empty means every rule counts 0
 
     def test_an_incident_fails_when_the_rule_is_deleted_or_the_counter_regresses(self):
-        incident = evals_run.load_incidents()[0]
+        incident = next(i for i in evals_run.load_incidents() if i["id"] == "button-new-is-not-a-badge")
         gone = {**incident, "rule": {**incident["rule"], "phrase": "a sentence nobody wrote"}}
         self.assertEqual(len(evals_run.check_incident(gone)), 1)
-        wrong = {**incident, "counter": {**incident["counter"], "expect": {"U9 badge word": 5}}}
-        self.assertIn("U9 badge word: expected 5, counted 0", evals_run.check_incident(wrong))
+        wrong = {**incident, "counter": {**incident["counter"], "expect": {"U9 badge": 5}}}
+        self.assertIn("U9 badge: expected 5, counted 0", evals_run.check_incident(wrong))
 
 
 HOOK = os.path.join(SKILL, "scripts", "hook.py")
@@ -814,19 +815,19 @@ class ActionTest(unittest.TestCase):
         result, output, summary = self.run_action(path="examples/before", max="0")
         self.assertEqual(result.returncode, 1)
         self.assertTrue(result.stdout.startswith("::warning file=examples/before/"))
-        self.assertEqual(output.strip(), "total=35")
-        self.assertIn("35 possible tells (limit: 0)", summary)
+        self.assertEqual(output.strip(), "total=28")
+        self.assertIn("28 possible tells (limit: 0)", summary)
 
     def test_passes_a_clean_folder_and_reports_without_a_limit(self):
         result, output, _ = self.run_action(path="examples/after", max="0", surface="true")
         self.assertEqual((result.returncode, output.strip()), (0, "total=0"))
         result, output, summary = self.run_action(path="examples/before examples/after")
-        self.assertEqual((result.returncode, output.strip()), (0, "total=35"))
+        self.assertEqual((result.returncode, output.strip()), (0, "total=28"))
         self.assertIn("(limit: no limit)", summary)
 
     def test_paths_may_be_split_by_newlines_and_an_empty_list_scans_the_repo(self):
         result, output, _ = self.run_action(path="examples/after\nexamples/before")
-        self.assertEqual((result.returncode, output.strip()), (0, "total=35"))
+        self.assertEqual((result.returncode, output.strip()), (0, "total=28"))
         result, output, _ = self.run_action(path="   ", max="1000000")
         self.assertEqual(result.returncode, 0)
         self.assertRegex(output, r"total=\d+")
@@ -923,7 +924,7 @@ class PluginTest(unittest.TestCase):
 
     def test_every_counted_rule_has_a_search_pattern(self):
         patterns = read_text(PLUGIN_SKILL, "references", "finding-tells.md")
-        for rule in ["U1", "U2", "U6", "U9", "U10", "U11", "U12", "U13", "U15", "U16", "U17", "U18", "U19", "U20", "U21", "U23", "U26", "T1", "T2", "T3", "unslop 7", "unslop 13"]:
+        for rule in ["U1", "U2", "U6", "U9", "U10", "U11", "U15", "U16", "U17", "U18", "U19", "U20", "U21", "U23", "U26", "T1", "T2", "T3", "unslop 13"]:
             self.assertIn("**" + rule + " ", patterns)
 
 
