@@ -2,9 +2,7 @@
   "clean": {
     "why": "A screen with nothing to cut comes back byte-identical, including the cases the counter used to flag.",
     "files": {
-      "Members.tsx": {
-        "unchanged": true
-      }
+      "Members.tsx": { "unchanged": true }
     }
   },
   "real-state": {
@@ -20,18 +18,8 @@
           "Recent deploys",
           "deploys.map((deploy) =>"
         ],
-        "keep_regex": [
-          "0?1</span>\\s*Install",
-          "0?3</span>\\s*Deploy"
-        ],
-        "cut": [
-          "uppercase tracking-widest",
-          "🚀",
-          ">NEW<",
-          "This section lists",
-          "refreshes automatically",
-          "animate-pulse"
-        ],
+        "keep_regex": ["0?1</span>\\s*Install", "0?3</span>\\s*Deploy"],
+        "cut": ["uppercase tracking-widest", "🚀", ">NEW<", "This section lists", "refreshes automatically", "animate-pulse"],
         "no_new_numbers": true
       }
     }
@@ -40,30 +28,13 @@
     "why": "Copy that lives in a translation file is fixed there, never hard-coded into the component.",
     "files": {
       "Billing.tsx": {
-        "keep": [
-          "t(\"billing.title\")",
-          "t(\"billing.cta\")",
-          "onClick={onUpgrade}",
-          "useTranslation()"
-        ],
-        "cut": [
-          "uppercase tracking-widest"
-        ],
-        "cut_regex": [
-          "Upgrade plan",
-          "subscription"
-        ]
+        "keep": ["t(\"billing.title\")", "t(\"billing.cta\")", "onClick={onUpgrade}", "useTranslation()"],
+        "cut": ["uppercase tracking-widest"],
+        "cut_regex": ["Upgrade plan", "subscription"]
       },
       "en.json": {
-        "keep": [
-          "\"title\": \"Billing\"",
-          "Upgrade plan"
-        ],
-        "cut": [
-          "🚀",
-          "Seamlessly",
-          "all in one place"
-        ],
+        "keep": ["\"title\": \"Billing\"", "Upgrade plan"],
+        "cut": ["🚀", "Seamlessly", "all in one place"],
         "valid_json": true
       }
     }
@@ -81,16 +52,8 @@
           "aria-label=\"Show password\"",
           "Create account"
         ],
-        "cut": [
-          "Enter your email address",
-          "Enter your password",
-          "We'll use this email address",
-          "Fill out the form below",
-          "✨"
-        ],
-        "cut_regex": [
-          "<input[^>]*aria-label"
-        ],
+        "cut": ["Enter your email address", "Enter your password", "We'll use this email address", "Fill out the form below", "✨"],
+        "cut_regex": ["<input[^>]*aria-label"],
         "no_new_numbers": true
       }
     }
@@ -99,21 +62,8 @@
     "why": "Slogans go without inventing product facts; social proof the code cannot verify is reported, not deleted.",
     "files": {
       "index.html": {
-        "keep": [
-          "Trusted by 10,000+ teams",
-          "Sarah Chen",
-          "Start free trial",
-          "Shared inbox",
-          "Saved replies",
-          "href=\"/signup\""
-        ],
-        "cut": [
-          "uppercase tracking-widest",
-          "Reimagined",
-          "next-generation",
-          "effortlessly",
-          "empowers"
-        ],
+        "keep": ["Trusted by 10,000+ teams", "Sarah Chen", "Start free trial", "Shared inbox", "Saved replies", "href=\"/signup\""],
+        "cut": ["uppercase tracking-widest", "Reimagined", "next-generation", "effortlessly", "empowers"],
         "no_new_numbers": true
       }
     }
@@ -123,31 +73,14 @@
     "files": {
       "Header.tsx": {
         "keep": [
-          "Svalbard",
-          "Greenland",
-          "Iceland",
-          "Antarctica",
-          "View all destinations",
-          "aria-label=\"Open menu\"",
-          "MenuIcon",
-          "href={href}",
-          "Begin your journey",
-          "Explore voyages",
-          "Discover Untamed Wilderness",
-          "Small-ship voyages"
+          "Svalbard", "Greenland", "Iceland", "Antarctica", "View all destinations",
+          "aria-label=\"Open menu\"", "MenuIcon", "href={href}", "Begin your journey",
+          "Explore voyages", "Discover Untamed Wilderness", "Small-ship voyages"
         ],
         "cut": [
-          "uppercase tracking-widest",
-          "Popular destinations",
-          "Polar expeditions",
-          "bg-sky-100",
-          "bg-sky-500",
-          "Explore the Arctic's crown jewel",
-          "Discover majestic ice fjords",
-          "The land of fire and ice",
-          "The last great wilderness",
-          "Snowflake",
-          "Compass"
+          "uppercase tracking-widest", "Popular destinations", "Polar expeditions", "bg-sky-100", "bg-sky-500",
+          "Explore the Arctic's crown jewel", "Discover majestic ice fjords", "The land of fire and ice",
+          "The last great wilderness", "Snowflake", "Compass"
         ],
         "no_new_numbers": true
       }
@@ -157,22 +90,8 @@
     "why": "Arrows after link text and generic names go, one action gets one name, and an icon-only button and a link that leaves the site keep their arrows.",
     "files": {
       "Links.tsx": {
-        "keep": [
-          "aria-label=\"Next slide\"",
-          "<ArrowRight />",
-          "Status ↗",
-          "Changelog",
-          "Get started",
-          "href=\"/signup\"",
-          "href=\"/pricing\"",
-          "href=\"/docs/api\""
-        ],
-        "cut": [
-          "Learn more →",
-          "Click here",
-          "Start now",
-          "<ArrowRight className=\"size-4\" />"
-        ],
+        "keep": ["aria-label=\"Next slide\"", "<ArrowRight />", "Status ↗", "Changelog", "Get started", "href=\"/signup\"", "href=\"/pricing\"", "href=\"/docs/api\""],
+        "cut": ["Learn more →", "Click here", "Start now", "<ArrowRight className=\"size-4\" />"],
         "no_new_numbers": true
       }
     }
@@ -184,10 +103,7 @@
         "unchanged": true
       }
     },
-    "report_regex": [
-      "U24",
-      "U25"
-    ]
+    "report_regex": ["U24", "U25"]
   },
   "plan": {
     "why": "With --plan nothing is edited: the plan is shown and the skill waits for the owner.",
@@ -197,33 +113,14 @@
         "unchanged": true
       }
     },
-    "report_regex": [
-      "U1\\b",
-      "(?i)apply|go ahead|proceed|change it|amend"
-    ]
+    "report_regex": ["U1\\b", "(?i)apply|go ahead|proceed|change it|amend"]
   },
   "es": {
     "why": "The rules apply to Spanish copy: filler, an eyebrow, numbering, a badge and reading instructions go; the social proof and the action stay.",
     "files": {
       "index.html": {
-        "keep": [
-          "Más de 10.000 equipos confían en Libro",
-          "Crear factura",
-          "href=\"/facturas/nueva\""
-        ],
-        "cut": [
-          "uppercase tracking-widest",
-          "Presentamos Libro",
-          "Por fin",
-          "sin fisuras",
-          "última generación",
-          "solución integral",
-          ">NUEVO<",
-          "01 //",
-          "Haz clic en el botón de abajo",
-          "Pasa el cursor",
-          "→"
-        ],
+        "keep": ["Más de 10.000 equipos confían en Libro", "Crear factura", "href=\"/facturas/nueva\""],
+        "cut": ["uppercase tracking-widest", "Presentamos Libro", "Por fin", "sin fisuras", "última generación", "solución integral", ">NUEVO<", "01 //", "Haz clic en el botón de abajo", "Pasa el cursor", "→"],
         "no_new_numbers": true
       }
     }
@@ -233,19 +130,8 @@
     "args": "--surface",
     "files": {
       "Card.tsx": {
-        "keep": [
-          "role=\"alert\"",
-          "border-l-4 border-red-500",
-          "{failed &&",
-          "Payment failed",
-          "<h3>{title}</h3>",
-          "{children}"
-        ],
-        "cut": [
-          "border-indigo-500",
-          "whileInView",
-          "opacity: 0"
-        ]
+        "keep": ["role=\"alert\"", "border-l-4 border-red-500", "{failed &&", "Payment failed", "<h3>{title}</h3>", "{children}"],
+        "cut": ["border-indigo-500", "whileInView", "opacity: 0"]
       }
     }
   },
@@ -253,19 +139,10 @@
     "why": "The project's taste file bans exclamation marks, keeps the Beta badge and switches U11 off, so the emoji stays.",
     "files": {
       "Header.tsx": {
-        "keep": [
-          "🚀 Rocket Deploy",
-          ">Beta<",
-          "Welcome back",
-          "Your deploy is ready"
-        ],
-        "cut": [
-          "!</p>"
-        ]
+        "keep": ["🚀 Rocket Deploy", ">Beta<", "Welcome back", "Your deploy is ready"],
+        "cut": ["!</p>"]
       }
     },
-    "report_regex": [
-      "(?i)off by taste file"
-    ]
+    "report_regex": ["(?i)off by taste file"]
   }
 }
