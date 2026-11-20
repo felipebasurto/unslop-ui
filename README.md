@@ -263,7 +263,7 @@ The counter only sees the patterns a regex can find. The run also removes the on
 
 ### Keep tells out while the agent writes
 
-`/unslop-ui` cleans a screen after the fact. Paste the block in [`agents-snippet.md`](skills/unslop-ui/references/agents-snippet.md) into your `AGENTS.md`, `CLAUDE.md` or a Cursor rule and the agent stops writing the tells to begin with. It is nine lines, one per family of rule.
+`/unslop-ui` cleans a screen after the fact. Paste the block in [`agents-snippet.md`](skills/unslop-ui/references/agents-snippet.md) into your `AGENTS.md`, `CLAUDE.md` or a Cursor rule and the agent stops writing the tells to begin with. It is nine bullets.
 
 ### Catch tells as the agent edits (hook)
 
