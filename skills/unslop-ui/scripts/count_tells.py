@@ -313,13 +313,13 @@ LINK_NAME = r"(?:a|button|[A-Za-z.]*(?:Link|Button|Anchor)|[a-z]+(?:-[a-z]+)*-(?
 LINK_START = re.compile(r"<(%s)(?![\w.-])" % LINK_NAME)
 HIDDEN_TEXT = re.compile(r"<(\w+)\b[^<>]*\b(?:sr-only|visually-hidden|visuallyHidden)\b[^<>]*>.*?</\1>", re.S)
 HAS_WORDS = re.compile(r"[^\W\d_]{2,}")
-LOOKBACK = 600
+LOOKBACK = 3000
 
 
 def tag_end(text, start):
     """(index after the tag that opens at start, whether it closes itself), or None. Quotes and braces are skipped."""
     depth, quote = 0, ""
-    for i in range(start + 1, min(len(text), start + 800)):
+    for i in range(start + 1, min(len(text), start + 2500)):
         c = text[i]
         if quote:
             if c == quote:
@@ -444,6 +444,8 @@ def vocabulary_in_text(text):
     hits = set()
     for pattern, group, blank_braces in ((TEXT_NODE, 1, True), (STRING_LITERAL, 2, False)):
         for m in pattern.finditer(text):
+            if pattern is STRING_LITERAL and text[m.start() - 2:m.start()] == m.group(1) * 2:
+                continue  # a triple-quoted docstring
             segment = BRACES.sub(lambda b: " " * len(b.group(0)), m.group(group)) if blank_braces else m.group(group)
             hits.update(m.start(group) + v.start() for v in VOCABULARY.finditer(segment))
     return sorted(hits)

@@ -403,6 +403,14 @@ export const options = {
         )
         self.assertEqual(count_source(source, ".tsx")["U21 arrow link"], 0)
 
+    def test_a_very_long_class_list_does_not_hide_the_arrow(self):
+        source = '<a className="' + "px-4 " * 200 + '" href="/x">Learn more →</a>\n'
+        self.assertEqual(count_source(source, ".tsx")["U21 arrow link"], 1)
+
+    def test_python_docstrings_are_not_copy(self):
+        source = '"""A robust, seamless helper."""\ntitle = "A robust chart"\n'
+        self.assertEqual(count_source(source, ".py")["unslop 7 AI vocabulary"], 1)
+
     def test_generic_labels_are_found_in_nested_and_framework_markup(self):
         source = (
             '<a href="/x"><span>Learn more</span></a>\n<Button><Icon /> Submit</Button>\n'
