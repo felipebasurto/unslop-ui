@@ -141,7 +141,7 @@
     "why": "The project's taste file bans exclamation marks, keeps the Beta badge and switches U11 off, so the emoji stays.",
     "files": {
       "Header.tsx": {
-        "keep": ["🚀 Rocket Deploy", ">Beta<", "Welcome back", "Your deploy is ready"],
+        "keep": ["🚀 Rocket Deploy", ">Beta<", "Welcome back, {user.name}", "Deploy {deploy.id} is ready"],
         "cut": ["!</p>"]
       }
     },
