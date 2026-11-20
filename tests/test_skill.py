@@ -232,6 +232,41 @@ export const options = {
     def test_surface_counts_large_values_off_the_4px_grid(self):
         self.assertEqual(count_source('<div className="mt-[18px] p-[30px]" />\n', ".tsx", "--surface")["U18 off-scale spacing"], 2)
 
+    def test_taste_rules_run_only_when_the_taste_file_bans_them(self):
+        source = '<h1>Welcome back!</h1>\n<Button className="uppercase">Save</Button>\n<span>Jan 3 \u00b7 14:02</span>\n'
+        with tempfile.TemporaryDirectory() as folder:
+            path = os.path.join(folder, "page.tsx")
+            taste = os.path.join(folder, "taste.md")
+            with open(path, "w", encoding="utf-8") as f:
+                f.write(source)
+            plain = count(path)
+            self.assertFalse([rule for rule in plain if rule.startswith("T")])
+            self.assertEqual(plain["total"], 0)
+            for ban, rule in [("Exclamation marks", "T1 exclamation mark"), ("All caps", "T2 uppercase text"), ("Middle dots between items", "T3 middle dot")]:
+                with open(taste, "w", encoding="utf-8") as f:
+                    f.write("# Taste\n\n## Bans\n\n- {}\n\n## Keep\n\n- Exclamation marks in the footer\n".format(ban))
+                counts = count("--taste", taste, path)
+                self.assertEqual(counts[rule], 1, rule)
+                self.assertEqual(counts["total"], 1, rule)
+
+    def test_taste_file_is_found_in_the_working_folder(self):
+        with tempfile.TemporaryDirectory() as folder:
+            os.mkdir(os.path.join(folder, ".unslop-ui"))
+            with open(os.path.join(folder, ".unslop-ui", "taste.md"), "w", encoding="utf-8") as f:
+                f.write("## Bans\n\n- Exclamation marks\n")
+            with open(os.path.join(folder, "a.html"), "w", encoding="utf-8") as f:
+                f.write("<p>Saved!</p>\n")
+            result = subprocess.run([sys.executable, COUNTER, "."], capture_output=True, text=True, cwd=folder)
+        self.assertEqual(json.loads(result.stdout)["T1 exclamation mark"]["count"], 1)
+
+    def test_a_missing_taste_file_fails_and_the_taste_folder_is_not_scanned(self):
+        self.assertEqual(run(COUNTER, "--taste", "nope.md", os.path.join(ROOT, "examples")).returncode, 2)
+        with tempfile.TemporaryDirectory() as folder:
+            os.mkdir(os.path.join(folder, ".unslop-ui"))
+            with open(os.path.join(folder, ".unslop-ui", "taste.md"), "w", encoding="utf-8") as f:
+                f.write("## Bans\n\n- Exclamation marks\n\nNo more \u2014 and no emoji \U0001F680!\n")
+            self.assertEqual(count(folder)["total"], 0)
+
     def test_max_sets_the_exit_code(self):
         before = os.path.join(ROOT, "examples", "before")
         self.assertEqual(run(COUNTER, "--max", "0", before).returncode, 1)
@@ -376,6 +411,34 @@ class EvalFixturesTest(unittest.TestCase):
         self.assertEqual(failures, ["lost 'keep'", "still has 'cut'", "new numbers 3"])
 
 
+class IncidentTest(unittest.TestCase):
+    """Each incident is a reported false positive or miss, kept as a regression case."""
+
+    def test_every_incident_still_holds(self):
+        incidents = evals_run.load_incidents()
+        self.assertGreaterEqual(len(incidents), 8)
+        ids = [i["id"] for i in incidents]
+        self.assertEqual(len(ids), len(set(ids)))
+        for incident in incidents:
+            self.assertEqual(evals_run.check_incident(incident), [], incident["id"])
+
+    def test_every_incident_has_the_fields_and_a_matching_file_name(self):
+        for name in os.listdir(evals_run.INCIDENTS):
+            incident = json.loads(read_text(evals_run.INCIDENTS, name))
+            self.assertEqual(name, incident["id"] + ".json")
+            self.assertTrue(incident["report"])
+            self.assertTrue(incident["rule"]["phrase"])
+            self.assertTrue(incident["counter"]["source"])
+            self.assertTrue(incident["counter"]["expect"])
+
+    def test_an_incident_fails_when_the_rule_is_deleted_or_the_counter_regresses(self):
+        incident = evals_run.load_incidents()[0]
+        gone = {**incident, "rule": {**incident["rule"], "phrase": "a sentence nobody wrote"}}
+        self.assertEqual(len(evals_run.check_incident(gone)), 1)
+        wrong = {**incident, "counter": {**incident["counter"], "expect": {"U9 badge word": 5}}}
+        self.assertIn("U9 badge word: expected 5, counted 0", evals_run.check_incident(wrong))
+
+
 IMAGE_SUFFIXES = {".png", ".jpg", ".jpeg", ".gif", ".webp", ".ico"}
 ALLOWED_PLUGIN_SUFFIXES = {".md", ".txt", ".json", ".yaml", ".yml"} | IMAGE_SUFFIXES
 
@@ -430,7 +493,7 @@ class PluginTest(unittest.TestCase):
                 between(read_text(PLUGIN_SKILL, "SKILL.md"), start, end),
                 start,
             )
-        for name in ("examples.md", "tokens.md", "unslop-fallback.md"):
+        for name in ("examples.md", "tokens.md", "unslop-fallback.md", "taste-example.md"):
             self.assertEqual(read_text(SKILL, "references", name), read_text(PLUGIN_SKILL, "references", name), name)
 
     def test_links_exist(self):
@@ -440,7 +503,7 @@ class PluginTest(unittest.TestCase):
 
     def test_every_counted_rule_has_a_search_pattern(self):
         patterns = read_text(PLUGIN_SKILL, "references", "finding-tells.md")
-        for rule in ["U1", "U2", "U6", "U9", "U10", "U11", "U12", "U13", "U15", "U16", "U17", "U18", "U19", "U20", "unslop 13"]:
+        for rule in ["U1", "U2", "U6", "U9", "U10", "U11", "U12", "U13", "U15", "U16", "U17", "U18", "U19", "U20", "T1", "T2", "T3", "unslop 13"]:
             self.assertIn("**" + rule + " ", patterns)
 
 

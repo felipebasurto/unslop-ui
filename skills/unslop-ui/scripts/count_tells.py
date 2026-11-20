@@ -9,6 +9,9 @@ reading (U3, U4, U5, U7, U8, U14) and can flag legitimate cases.
 --surface adds the visual rules U17 to U20 (gradients and glows, off-scale
 spacing, extra-heavy weights, motion).
 --max N exits 1 when the total is above N, for CI.
+A taste file (.unslop-ui/taste.md in the current folder, or --taste PATH)
+turns on T1 to T3 for the bans it lists: exclamation marks, uppercase text,
+middle dots.
 """
 import argparse
 import bisect
@@ -25,7 +28,7 @@ KINDS = {
     "python": {".py"},
 }
 KIND_OF = {ext: kind for kind, exts in KINDS.items() for ext in exts}
-SKIP_DIRS = {"node_modules", ".git", "dist", "build", ".next", ".svelte-kit", ".astro", "coverage", ".venv", "venv", "__pycache__"}
+SKIP_DIRS = {"node_modules", ".git", ".unslop-ui", "dist", "build", ".next", ".svelte-kit", ".astro", "coverage", ".venv", "venv", "__pycache__"}
 SKIP_FILES = {"package-lock.json", "package.json"}
 # Minified bundles and data dumps are not hand-written interface code.
 MAX_BYTES = 1_000_000
@@ -133,17 +136,26 @@ PIPED = re.compile(r">[^<>{}\n]*\s\|\s[^<>{}\n]*\s\|\s[^<>{}\n]*<")
 CHAIN_GAP = 200
 
 
-def status_strings(text):
-    hits = [m.start() for m in JOINED.finditer(text)] + [m.start() for m in PIPED.finditer(text)]
-    cluster = []
+def separator_clusters(text):
+    """Runs of separators less than CHAIN_GAP apart, as lists of offsets."""
+    clusters, cluster = [], []
     for pos in [m.start() for m in SEPARATOR.finditer(text)] + [None]:
         if cluster and (pos is None or pos - cluster[-1] > CHAIN_GAP):
-            if len(cluster) > 1:
-                hits.append(cluster[0])
+            clusters.append(cluster)
             cluster = []
         if pos is not None:
             cluster.append(pos)
-    return hits
+    return clusters
+
+
+def status_strings(text):
+    hits = [m.start() for m in JOINED.finditer(text)] + [m.start() for m in PIPED.finditer(text)]
+    return hits + [c[0] for c in separator_clusters(text) if len(c) > 1]
+
+
+# T3: a separator that U6 leaves alone because it stands by itself.
+def lone_separators(text):
+    return [c[0] for c in separator_clusters(text) if len(c) == 1]
 
 
 # U9: a flavor word standing alone in a text node. Uppercase words count
@@ -248,6 +260,36 @@ def em_dashes(text):
     return [m.start() for m in EM_DASH.finditer(LONE_DASH.sub(blank, text))]
 
 
+# T1: an exclamation mark ending a word in visible text: a text node, a quoted
+# string or a line of prose. "!==", "!important" and a bare "!" are not it.
+BANG_TEXT = re.compile(r"(?<![=-])>[^<>{}\n;]*?\w!(?=\s|<|$)", re.M)
+BANG_STRING = re.compile(r"""(["'`])[^"'`\n]*?\w!\1""")
+BANG_PROSE = re.compile(r"\w!(?=\s|$)", re.M)
+
+
+def exclamations(text):
+    return [m.start() for m in BANG_TEXT.finditer(text)] + [m.start() for m in BANG_STRING.finditer(text)]
+
+
+def prose_exclamations(text):
+    return [m.start() for m in BANG_PROSE.finditer(text)]
+
+
+# T2: any uppercase styling that U1 has not already counted as an eyebrow.
+UPPERCASE = re.compile(r"(?<![\w-])uppercase(?![\w-])|text-transform:\s*uppercase|textTransform:\s*[\"']uppercase")
+
+
+def uppercase_text(text):
+    eyebrow_spans = [(m.start(), m.end()) for m in EYEBROW.finditer(text)]
+    hits = []
+    for m in UPPERCASE.finditer(text):
+        if any(start <= m.start() < end for start, end in eyebrow_spans):
+            continue
+        if enclosing_tag(text, m.start()) not in {"kbd", "abbr"}:
+            hits.append(m.start())
+    return hits
+
+
 # U18: odd pixel values, and anything over 16 that is not a multiple of 4.
 # 2, 6, 10 and 14 are Tailwind's half steps (0.5, 1.5, 2.5, 3.5).
 SPACING = re.compile(
@@ -285,6 +327,22 @@ RULES = [
     ("unslop 13 em dash", em_dashes, TEXT),
 ]
 STYLED = MARKUP | {"style"}
+# Counted only when the taste file bans them.
+TASTE_RULES = {
+    "exclamation": [
+        ("T1 exclamation mark", exclamations, {"markup", "data", "python"}),
+        ("T1 exclamation mark", prose_exclamations, {"prose"}),
+    ],
+    "uppercase": [("T2 uppercase text", uppercase_text, MARKUP | {"style"})],
+    "middle dot": [("T3 middle dot", lone_separators, TEXT)],
+}
+# Words in a ban line that select a counted rule. Other bans are read by the agent.
+TASTE_WORDS = {
+    "exclamation": "exclamation",
+    "uppercase": "uppercase|all caps|all-caps",
+    "middle dot": "middle.?dot|bullet separator|separator",
+}
+TASTE_FILE = os.path.join(".unslop-ui", "taste.md")
 SURFACE_RULES = [
     ("U17 gradient or glow", rx(
         r"\bbg-(?:gradient|linear|radial|conic)-to?-?|(?:linear|radial|conic)-gradient\(|\bbg-clip-text\b|background-clip:\s*text"
@@ -314,8 +372,23 @@ def iter_files(targets):
                     yield os.path.join(root, name)
 
 
-def count(targets, surface=False):
+def read_bans(path):
+    """The counted rules a taste file's Bans section switches on, as a set of keys."""
+    try:
+        with open(path, encoding="utf-8") as f:
+            text = f.read()
+    except OSError:
+        return set()
+    section = re.search(r"^##\s+Bans\s*$(.*?)(?=^##\s|\Z)", text, re.M | re.S | re.I)
+    lines = [l for l in (section.group(1) if section else "").splitlines() if re.match(r"\s*[-*]\s+\S", l)]
+    return {key for key, words in TASTE_WORDS.items() if any(re.search(words, l, re.I) for l in lines)}
+
+
+def count(targets, surface=False, bans=()):
     rules = RULES + (SURFACE_RULES if surface else [])
+    for key in TASTE_WORDS:
+        if key in bans:
+            rules = rules + TASTE_RULES[key]
     results = {name: {"count": 0, "examples": []} for name, _, _ in rules}
     for path in iter_files(targets):
         # A file named on the command line is scanned whatever its extension.
@@ -346,14 +419,15 @@ def main():
     parser.add_argument("targets", nargs="+", metavar="file-or-folder")
     parser.add_argument("--surface", action="store_true", help="also count U17 to U20")
     parser.add_argument("--max", type=int, metavar="N", help="exit 1 when the total is above N")
+    parser.add_argument("--taste", metavar="PATH", help="taste file whose Bans to count (default: {})".format(TASTE_FILE))
     args = parser.parse_args()
 
-    missing = [t for t in args.targets if not os.path.exists(t)]
+    missing = [t for t in args.targets + ([args.taste] if args.taste else []) if not os.path.exists(t)]
     if missing:
         print("Not found: " + ", ".join(missing), file=sys.stderr)
         sys.exit(2)
 
-    results = count(args.targets, args.surface)
+    results = count(args.targets, args.surface, read_bans(args.taste or TASTE_FILE))
     print(json.dumps(results, indent=2, ensure_ascii=False))
     if args.max is not None and results["total"] > args.max:
         sys.exit(1)

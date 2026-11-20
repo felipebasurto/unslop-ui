@@ -1,0 +1,41 @@
+name: False positive
+description: The skill or the counter cut, flagged or rewrote something that should have stayed
+labels: [false-positive]
+body:
+  - type: textarea
+    id: snippet
+    attributes:
+      label: The code
+      description: The smallest snippet that reproduces it. Paste the real markup, not a description.
+      render: tsx
+    validations:
+      required: true
+  - type: input
+    id: rule
+    attributes:
+      label: Rule
+      description: The id from the report or the counter output, such as U9 or T2.
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why it should stay
+      description: What the element does in the product (real state, real order, legal text, an action).
+    validations:
+      required: true
+  - type: dropdown
+    id: where
+    attributes:
+      label: Where it happened
+      options:
+        - The counter (count_tells.py or the Grep patterns)
+        - The agent run (it edited or deleted something)
+        - Both
+    validations:
+      required: true
+  - type: input
+    id: agent
+    attributes:
+      label: Agent and version
+      description: Claude Code, Cursor, Codex, the plugin or the skill, and the unslop-ui version.

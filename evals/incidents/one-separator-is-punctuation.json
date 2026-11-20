@@ -1,0 +1,15 @@
+{
+  "id": "one-separator-is-punctuation",
+  "report": "\"Jan 3 · 14:02\" was counted as a U6 status string.",
+  "rule": {
+    "file": "plugins/unslop-ui/skills/unslop-ui/references/finding-tells.md",
+    "phrase": "One separator (\"Jan 3 · 14:02\") is ordinary punctuation."
+  },
+  "counter": {
+    "suffix": ".tsx",
+    "source": "<span>Jan 3 · 14:02</span>\n",
+    "expect": {
+      "U6 status string": 0
+    }
+  }
+}
