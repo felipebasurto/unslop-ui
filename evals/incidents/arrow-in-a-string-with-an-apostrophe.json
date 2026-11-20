@@ -1,0 +1,15 @@
+{
+  "id": "arrow-in-a-string-with-an-apostrophe",
+  "report": "\"See what's new →\" was missed because the apostrophe broke quote pairing.",
+  "rule": {
+    "file": "skills/unslop-ui/SKILL.md",
+    "phrase": "an arrow icon after the text of a link or button"
+  },
+  "counter": {
+    "suffix": ".tsx",
+    "source": "const labels = { more: \"See what's new →\" };\n",
+    "expect": {
+      "U21 arrow link": 1
+    }
+  }
+}

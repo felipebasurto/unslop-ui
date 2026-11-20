@@ -1,0 +1,34 @@
+name: unslop-ui
+description: Count AI tells in interface copy, charts and styles. Annotates the first few tells of each rule and can fail the job above a limit.
+author: Felipe Basurto
+branding:
+  icon: scissors
+  color: gray-dark
+inputs:
+  path:
+    description: Files or folders to scan, separated by spaces.
+    default: "."
+  max:
+    description: Fail the job when the total is above this number. Leave empty to only report.
+    default: ""
+  surface:
+    description: Also count the surface rules (gradients, spacing, weights, motion, edge bars).
+    default: "false"
+  taste:
+    description: Path to a taste file. Defaults to .unslop-ui/taste.md when it exists.
+    default: ""
+outputs:
+  total:
+    description: Number of possible tells found.
+    value: ${{ steps.count.outputs.total }}
+runs:
+  using: composite
+  steps:
+    - id: count
+      shell: bash
+      env:
+        INPUT_PATH: ${{ inputs.path }}
+        INPUT_MAX: ${{ inputs.max }}
+        INPUT_SURFACE: ${{ inputs.surface }}
+        INPUT_TASTE: ${{ inputs.taste }}
+      run: bash "${{ github.action_path }}/scripts/action.sh"

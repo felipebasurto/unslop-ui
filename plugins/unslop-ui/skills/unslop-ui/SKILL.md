@@ -1,8 +1,8 @@
 ---
 name: unslop-ui
-description: "Cut AI tells from interface and chart copy: eyebrow labels, 01/02/03 numbering, redundant subtitles, captions that explain what is already visible, leaked design notes, decorative badges, status dots, chart clutter and legends a direct label could replace. Applies /pstack:unslop to every string it keeps. With --surface it also fixes gradients and glows, off-scale spacing, extra-heavy weights and decorative motion."
+description: "Cut AI tells from interface and chart copy: eyebrow labels, 01/02/03 numbering, redundant subtitles, captions that explain what is already visible, leaked design notes, decorative badges, status dots, arrows on links, generic link names, filler words, chart clutter and legends a direct label could replace. Applies /pstack:unslop to every string it keeps. With --surface it also fixes gradients and glows, edge accent bars, off-scale spacing, extra-heavy weights and decorative motion. With --plan it shows what it would cut and waits for your OK."
 disable-model-invocation: true
-argument-hint: "[file, folder or component] [--surface]"
+argument-hint: "[file, folder or component] [--surface] [--plan]"
 allowed-tools: Read, Grep, Glob, LS
 ---
 
@@ -14,11 +14,13 @@ Target: $ARGUMENTS
 
 If the target above is empty or still shows a placeholder, take it from the user's message. With none there either, use the files changed in this conversation, or ask.
 
-Scope: copy, decoration and charts by default (U1 to U16). If the arguments include `--surface`, also apply U17 to U20 (gradients and glows, off-scale spacing, heavy weights, motion), using the values in [references/tokens.md](references/tokens.md). Strip `--surface` from the target before reading paths.
+Scope: copy, decoration, charts, links and states by default (U1 to U16 and U21 to U23, plus U24 and U25, which are report only). If the arguments include `--surface`, also apply U17 to U20 and U26 (gradients and glows, off-scale spacing, heavy weights, motion, edge accent bars), using the values in [references/tokens.md](references/tokens.md). If they include `--plan`, change nothing: work through the procedure up to the verdict, show the plan and wait for the owner. Strip `--surface` and `--plan` from the target before reading paths.
+
+The rules apply in any language and any script: judge the copy in the language it is written in, by the same tests. The search patterns never match words, so they behave the same on every language: they look at structure (classes, markup, glyphs, chart config). What a string means is your call, not theirs.
 
 ## Writing rules from /pstack:unslop
 
-Apply these to every sentence you keep or write. Cite them as "unslop 13", so they don't read as U rules.
+Apply these to every sentence you keep or write. Cite them as "unslop 13", so they don't read as U rules. They are written with English examples. For copy in another language, apply their intent in that language and skip what only makes sense in English, such as its word lists and idioms.
 
 Find the rules before you edit anything:
 
@@ -32,19 +34,19 @@ Where these and the UI rules disagree, the UI rules win:
 
 ## Cut first, write little
 
-Deleting is the default fix. Where a rule says rewrite (U3, U8, U12), the new text may state only what the source already shows: the product's own copy, the names of its features, the data bound to the screen. Never add a number, a speed, an integration or a benefit you cannot point to in the code. With nothing true to say, delete the string, or leave it and list it as a task.
+Deleting is the default fix. Where a rule says rewrite (U3, U4, U8, U12, U22, U23), the new text may state only what the source already shows: the product's own copy, the names of its features, the data bound to the screen. Never add a number, a speed, an integration or a benefit you cannot point to in the code. With nothing true to say, delete the string, or leave it and list it as a task. Write a replacement in the language of the string it replaces, with words the screen already uses.
 
 ## UI rules
 
-Ids are stable. Cite them as U1 to U20 in the report.
+Ids are stable. Cite them as U1 to U26 in the report. The examples are in English. Every rule applies to copy in any language and script: read the example, then judge the same pattern in the language in front of you.
 
 ### Interface copy
 
 - **U1. Eyebrow labels.** Small uppercase or letter-spaced text above a heading ("PASSPORT", "FEATURES", "HOW IT WORKS"). It also comes as a pill or chip, often with a dot ("● POLAR EXPEDITIONS"), and as a caption over a menu or dropdown list ("POPULAR DESTINATIONS"). Delete it. The heading already says what the section is.
-- **U2. Decorative numbering.** "01 02 03", "01 // Features", "§", "//" prefixes. Delete unless the order is real and the user follows it (steps of a checkout, a numbered install guide).
+- **U2. Decorative numbering.** "01 02 03", "01 // Features", "§", "//" prefixes. Delete the numbers, not the text they label. Ask whether someone following the screen would lose their place without them: three feature cards, no; install steps, yes. Keep the numbers when the order is real and the user follows it (steps of a checkout, a numbered install guide, commands to run in order): a list of real steps stays whole, hand-written numbers included: a CSS reset hides the numbers an `<ol>` would draw.
 - **U3. Subtitle reflex.** A subtitle under every heading, or a line above the H1. Keep one only when it states a fact the heading doesn't. "Analytics / Understand your data better" loses the second line. The same goes for a blurb under every item of a menu, dropdown or card list ("Greenland / Discover majestic ice fjords"): keep it only when the names alone can't tell the items apart (plan tiers, settings), and then only for the items that need it.
-- **U4. Botsplaining.** Captions, helper text and descriptions that narrate what the element visibly does ("Click the button below to get started", "This chart shows revenue over time"). Delete. Empty states, error messages and confirmations of destructive actions are not deleted, but they are edited: one or two plain sentences that say what happened and what to do next, without "Oops!" or an exclamation mark.
-- **U5. Leaked design notes.** Text about how the screen works or why it was designed that way, long parentheticals, "(updates in real time)", "(powered by AI)". Delete it, or move it to a tooltip if a user would genuinely look for it.
+- **U4. Botsplaining.** Captions, helper text and descriptions that narrate what the element visibly does ("Click the button below to get started", "This chart shows revenue over time"). Delete. Empty states, error messages and confirmations of destructive actions are not deleted, but they are edited: one or two plain sentences that say what happened and what to do next, without "Oops!" or an exclamation mark. One that already does that stays exactly as it is. The next step comes from what the code shows (the field, the retry, the setting). With nothing to point to, state the failure plainly and list the missing way out as a task.
+- **U5. Leaked design notes.** Text about how the screen works or why it was designed that way, long parentheticals, "(updates in real time)", "(powered by AI)". Delete it. If a user would genuinely look for it, put it inline next to the control it explains, not behind a tooltip or a hover.
 - **U6. Status strings.** Facts chained with "·" or "|" ("12 items · Updated 2m ago · Synced · v2.1"). Keep the one fact the user acts on. Put others where they're needed, or drop them. A fact that claims live state ("Synced", "All systems operational") has to pass the real-state test under Decoration, or it goes.
 - **U7. Labeling everything.** A label that repeats the placeholder, the icon, the button text or the section heading. Pick one cue. In a form the cue that stays is the visible label: cut a placeholder that repeats it (one that shows a format, "name@company.com", can stay) and helper text that restates it or says what the field is obviously for ("We'll use this email to contact you"). A constraint the user can't guess ("At least 12 characters") stays. A search field with a magnifier icon takes a placeholder or a label, not both.
 - **U8. Staccato and empty slogans.** "One. Big. Thing.", "Built different.", "Ship faster. Think less." Rewrite as one sentence that names the thing and what it does, in words the page already uses, or delete.
@@ -67,37 +69,51 @@ The test for real state, in U6, U9 and U10: the element renders from a condition
 - **U15. Chart scaffolding that competes with the data.** A frame box around the plot area, dark or dense gridlines, minor ticks, thick axis borders, 3D, drop shadows and glows on marks, background fills behind the plot. Delete them, or make what must stay (a few gridlines, one baseline) a hairline in a light gray. Data on top, labels next, scaffolding faintest. Do not redesign the chart: same type, same data, same series colors.
 - **U16. Legend where a direct label works.** A legend box that makes the reader match colors to names, when the name could sit at the end of the line or next to the bar. Label the series directly, ideally with its latest value ("This year 1,150"), and remove the legend. Keep a legend for more than four series or when the marks are too close to label.
 
+### Links, actions and states
+
+- **U21. Arrow on links and buttons.** A `→` glyph (`←` in a right-to-left script) or an arrow icon after the text of a link or button ("Learn more →", "Get started" followed by `<ArrowRight />`). Delete it: the text already says where it goes, and a screen reader reads the glyph aloud. An arrow stays when it carries meaning: `↗` on a link that leaves the site, an icon-only Next or Previous button with an `aria-label` (also when the only text beside it is screen-reader-only), a breadcrumb or step separator.
+- **U22. One action, one name.** The same action called different things in different places ("Get started", "Start now" and "Begin" all leading to signup), or a button whose result uses another verb ("Publish", then a toast that says "Saved"). Use the name the product already uses most, everywhere. It applies to labels of the same action (signing up, starting a trial). A navigation label and a call to action that point at the same page ("Voyages" in the menu, "Explore voyages" in the hero) do different jobs and keep their own names, and so do two actions with different destinations. Rename only labels in the files you are editing. Names that live elsewhere go in the report as a task.
+- **U23. Generic link and button names.** "Click here", "Learn more", "Read more", "Submit": a phrase that carries no information about where it goes or what it does, which a screen reader lists with no context. Replace only these, and their equivalents in other languages, with the destination or the result ("Read the pricing guide", "Save API key"), using only what the code shows: the `href`, the page it opens, the form's purpose. With nothing to go on, leave it and list it as a task. A label that already says what it does ("Begin your journey", "Explore voyages", "Save changes") is not U23, even when it differs from the page title: leave it. One "Learn more" right after its own paragraph is borderline. The same label twice on a page is the tell.
+- **U24. Equal stat cards.** A row of identical cards that each hold a big number and a small label, so every figure is equally loud. Report only: name the figure the screen exists to show, and leave the layout to the owner.
+- **U25. States nobody handled.** A screen that loads, lists or submits with no loading, empty or error branch in its code: a list that renders nothing for `[]`, a form with nowhere to show an error, a button with no pending state. Report only, never add one. Each missing state is a task that names the component.
+
 ### Surface (only with `--surface`)
 
-Each rule pairs the tell with its fix. Read [references/tokens.md](references/tokens.md) for the values. If you can't open it, the values in these four rules are enough.
+Each rule pairs the tell with its fix. Read [references/tokens.md](references/tokens.md) for the values. If you can't open it, the values in these rules are enough.
 
 - **U17. Gradients and glows.** A gradient from one hue to another on a surface, button or active item, gradient text (`bg-clip-text`), colored glows (`shadow-[0_0_20px_...]`, `shadow-purple-500/50`), blurred color blobs behind content. Fix: a solid neutral surface, solid text color, a neutral shadow no stronger than `0 1px 2px rgb(0 0 0 / 0.05)`, or a hairline border. A gradient that is only a tone shift inside one neutral can stay.
 - **U18. Off-scale spacing.** One-off values such as `mt-[13px]`, `py-[11px]`, `gap: 7px`. Fix: the nearest step of 4, 8, 12, 16, 20, 24, 32, 40, 48, 64. Inside a control, 2, 6, 10 and 14 are also steps. Siblings that do the same job (rows of one list, cards of one row) get the same value. Keep an odd value that exactly centers something.
 - **U19. Extra-heavy weights.** `font-extrabold`, `font-black`, `font-weight: 800` or `900`. Fix: 500 or 600, and let size and color carry the hierarchy.
-- **U20. Decorative motion.** `transition-all`, `hover:scale-*` on cards, `animate-bounce`, springs and overshoot on simple UI. Fix: transition named properties (`transition-colors`) at 150ms ease-out, keep a press scale of 0.97 to 0.98 if the control has one. Motion that explains something stays. Pulsing dots are U10.
+- **U20. Decorative motion.** `transition-all`, `hover:scale-*` on cards, `animate-bounce`, springs and overshoot on simple UI, and a fade or slide entrance on every section as it scrolls into view (`whileInView`, `data-aos`). Fix: transition named properties (`transition-colors`) at 150ms ease-out, keep a press scale of 0.97 to 0.98 if the control has one, and render scroll-revealed content in place. Motion that answers something the user did stays. Pulsing dots are U10.
+- **U26. Edge accent bar.** A colored border of 3px or more on the left edge of a card, quote or list item (`border-l-4 border-indigo-500`, `border-left: 4px solid`). Fix: a 1px border all round, or a neutral tint on the selected item. A bar on a real status stays: an alert with `role="alert"`, an error or warning callout.
 
-U17 to U20 never change the palette, the type family, the type sizes, the radii, the layout structure or the order of sections. They replace a value with a better value, they don't redesign.
+U17 to U20 and U26 never change the palette, the type family, the type sizes, the radii, the layout structure or the order of sections. They replace a value with a better value, they don't redesign.
 
 For before/after pairs, read [references/examples.md](references/examples.md) when unsure how far to cut.
 
 ## Guardrails
 
-- Change visible text and decorative elements only. Do not touch logic, data, colors, spacing tokens or layout structure. The exceptions are chart scaffolding under U15, which may be thinned or lightened, and U17 to U20 when `--surface` is on.
+- Change visible text and decorative elements only. Do not touch logic, data, colors, spacing tokens or layout structure. The exceptions are chart scaffolding under U15, which may be thinned or lightened, and U17 to U20 and U26 when `--surface` is on.
+- U24 and U25 are report only. Never edit a screen for them, and never add a state, a component or a handler.
+- Never edit installed skills or agent config: `.claude/`, `.cursor/`, `.agents/`, `.codex/`.
 - If the project already has tokens (Tailwind theme, CSS variables, a design-system package), fix toward those and not toward the fallback values in `references/tokens.md`.
 - Never change a screen that has nothing to cut. See the verdict in step 3.
 - When you delete an element, delete what existed only for it: its now-empty wrapper, a wrapper left holding a single child it only grouped, the margin or gap, the import or variable nothing else uses.
+- Never delete a link or a button, whatever its text says. Strip its arrow or decoration, or rename it as U23 says, but it keeps its `href` or handler.
 - Never delete `aria-label`, `alt`, `title` on icon buttons, or screen-reader-only text. If cut visible text was the only accessible name, move it into `aria-label`.
 - A form field keeps a visible label tied to its input (`for` and `id`, or a wrapping `<label>`). Never swap it for a placeholder or an `aria-label`.
 - Text that comes from data, props, i18n files or a CMS: edit it at its source (the translation file, the fixture) or report it, don't hard-code a replacement in the component.
 - Claims you cannot verify from the code (customer counts, uptime, ratings, testimonials, customer logos): do not delete or rewrite them. List each as a task.
 - If a flagged case earns its place (real state, real order, legal text), keep it and say why in the report.
+- Content that looks misplaced or off-topic is a task for the owner, never a deletion. Delete only what a rule names.
 
 ## Taste file
 
 If `.unslop-ui/taste.md` exists in the project, read it before step 1. It is the owner's list of what they want gone, and it wins over your own judgment of what is a tell.
 
-- **Bans.** Each bullet under `## Bans` is one more tell, fixed with the same rule as the UI rules: delete first, rewrite only from what the source shows. Three have a counter rule and a fixed id: exclamation marks (**T1**), uppercase text anywhere, not only eyebrows (**T2**) and middle dots or bullets that stand alone (**T3**, a chain is U6). Any other bullet you find by reading and number T4, T5 in order. Emoji, em dashes and gradients already have U11, unslop 13 and U17, so a ban on them needs no new id.
+- **Bans.** Each bullet under `## Bans` is one more tell, fixed with the same rule as the UI rules: delete first, rewrite only from what the source shows. A ban on a mark or a style (the first three below) changes the mark or the style and keeps the words. Three have a search pattern and a fixed id: exclamation marks (**T1**), uppercase text anywhere, not only eyebrows (**T2**) and middle dots or bullets that stand alone (**T3**, a chain is U6). Any other bullet you find by reading and number T4, T5 in order. Emoji, em dashes and gradients already have U11, unslop 13 and U17, so a ban on them needs no new id.
 - **Keep.** Each bullet under `## Keep` names something never to cut or rewrite, such as a badge, a brand name or legal text. List it under "Kept on purpose" when it would have been a hit.
+- **Off.** Each bullet under `## Off` names a rule id (`U11`, `unslop 13`, `T1`) to skip entirely, with the reason after it. Do not apply or report that rule; mention the ids once at the top of the report as "Off by taste file".
 
 A taste file never overrides the guardrails above. A ban on uppercase does not delete an `aria-label`, a visible form label or text that renders from real state. With no taste file, T1 to T3 do not run. See [references/taste-example.md](references/taste-example.md) for the format.
 
@@ -107,19 +123,19 @@ Copy this checklist and track it:
 
 ```
 - [ ] 1. Count: search the target with the patterns in references/finding-tells.md, tally hits per rule (add --surface patterns only with --surface, and the T1 to T3 patterns only when the taste file bans them)
-- [ ] 2. Read every visible string and decorative element; tag each problem with U1-U20, a T number from the taste file, or an unslop rule number
+- [ ] 2. Read every visible string and decorative element; tag each problem with U1-U26, a T number from the taste file, or an unslop rule number
 - [ ] 3. Verdict: heavy, light or none
-- [ ] 4. Edit
+- [ ] 4. Edit (with --plan: show the plan and stop; edit only after the owner says go)
 - [ ] 5. Count again with the same command
 - [ ] 6. Review the result
 - [ ] 7. Report
 ```
 
-**Count.** Run the Grep patterns in [references/finding-tells.md](references/finding-tells.md) over the target and tally the hits per rule. They are regex candidates, and they find only the mechanical forms of U1, U2, U6, U9 to U13, U15, U16 and the em dash. U3, U4, U5, U7, U8 and U14 need reading, and the patterns see only the common code forms of the rest. They flag legitimate cases too. A count above 0 after editing is fine when every remaining hit is one you kept on purpose. Never delete something legitimate to reach 0. Your reading in step 2 is the real check. Use the same patterns for the second count so the before and after numbers compare.
+**Count.** Run the Grep patterns in [references/finding-tells.md](references/finding-tells.md) over the target and tally the hits per rule. They are regex candidates for structure: eyebrow styling, numbering, separators, badge shapes, status dots, emoji, icon tiles, arrow glyphs, the same link text pointing at different places, chart config and em dashes. They never match words, so anything that depends on what words mean needs your reading, in any language: U3, U4, U5, U7, U8, U12, U13, U14, U22, U24, U25, filler words and generic link names. They flag legitimate cases too. A count above 0 after editing is fine when every remaining hit is one you kept on purpose. Never delete something legitimate to reach 0. Your reading in step 2 is the real check. Use the same patterns for the second count so the before and after numbers compare.
 
 **Verdict**, from the count and your reading:
 
-- **Heavy.** Tells in most of the rules, or the same tell repeated across the screen. Work through every rule.
+- **Heavy.** Tells in most of the rules, or the same tell repeated across the screen. Work through every rule that applies, with U24 and U25 as report only.
 - **Light.** A few tells. Fix only those. Leave everything else exactly as it is.
 - **None.** The patterns find nothing, or only legitimate cases, and reading finds nothing that earns a cut. Say so, edit nothing, and name at most two optional refinements. A clean screen is a result, not a failure.
 
@@ -127,13 +143,16 @@ Copy this checklist and track it:
 
 - Every subtitle, caption, helper text and label still on the screen: does it pass U3, U4, U5 and U7?
 - Every string you wrote: is each fact in it in the source, and is it inside the length limit?
-- Every deletion: is there an empty wrapper, a wrapper with one child, a leftover margin or an unused import?
+- Every deletion: was it tied to real state or a real order (a step list, a badge rendered from a prop)? Put it back if so. Is there an empty wrapper, a wrapper with one child, a leftover margin or an unused import?
 - Every input still has its visible label, and every icon button still has a name.
+- Read each string you wrote or kept out loud. Where you stumble, shorten it. Where it says nothing new, cut it.
 - Nothing outside the scope changed: logic, data, layout, and without `--surface` no styling.
 
 If you can render the screen (a dev server is running, or you have browser tools), look at it: a hole where an element was, or a row with one item left, is a leftover to fix. Fix what you find, then count again.
 
-**Report.** The table, then up to three lists, and nothing else. Use your tally from steps 1 and 2. Kept is how many of the After hits you left on purpose.
+**Plan (only with `--plan`).** Stop after the verdict and change nothing. Show the table with the Before column only, then one line per planned change (`file:line  U1  delete "INTRODUCING LEDGER"`), each rewrite as old → new, what you would keep on purpose and the tasks. End with one question: apply this plan, or change it? Edit only after the owner answers, and apply the plan exactly as they amended it.
+
+**Report.** Write it in the language the owner used to ask you, and quote screen copy as it is, untranslated. Open with the verdict on a line of its own (`Verdict: none`). Then the table, then up to three lists, and nothing else. When a taste file switches rules off, one line goes above the table: `Off by taste file: U11, unslop 13`. Use your tally from steps 1 and 2. Kept is how many of the After hits you left on purpose.
 
 | Rule | Before | After | Kept |
 |---|---|---|---|
@@ -156,4 +175,5 @@ Skip a list that has nothing in it.
 
 ```
 - [ ] src/i18n/en.json:42  U3 subtitle "Understand your data better": remove or replace with a fact
+- [ ] src/Keys.tsx  U25 no error state: the key request can fail and nothing is shown
 ```

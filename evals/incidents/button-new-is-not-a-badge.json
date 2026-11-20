@@ -9,7 +9,7 @@
     "suffix": ".tsx",
     "source": "<Button>New</Button>\n<td>Pro</td>\n",
     "expect": {
-      "U9 badge word": 0
+      "U9 badge": 0
     }
   }
 }

@@ -1,0 +1,15 @@
+{
+  "id": "a-badge-has-the-same-shape-in-every-script",
+  "report": "Badge detection depended on English and Spanish words. It now looks at the shape: a badge component, a rounded padded span, or short ALL-CAPS text.",
+  "rule": {
+    "file": "plugins/unslop-ui/skills/unslop-ui/references/finding-tells.md",
+    "phrase": "which never matches a script without case"
+  },
+  "counter": {
+    "suffix": ".html",
+    "source": "<Badge>新着</Badge>\n<span class=\"rounded-full px-2 text-xs\">جديد</span>\n<span>NEU</span>\n<span>НОВОЕ</span>\n<span>こんにちは</span>\n<h2>NEW</h2>\n",
+    "expect": {
+      "U9 badge": 4
+    }
+  }
+}

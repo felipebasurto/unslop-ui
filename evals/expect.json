@@ -3,7 +3,8 @@
     "why": "A screen with nothing to cut comes back byte-identical, including the cases the counter used to flag.",
     "files": {
       "Members.tsx": { "unchanged": true }
-    }
+    },
+    "report_regex": ["(?i)\\bnone\\b|nothing to cut|nothing (was )?edited|already clean|no tells|left (it|the screen|everything) (alone|untouched)"]
   },
   "real-state": {
     "why": "Decoration goes; a badge, a dot and numbering that reflect real state or real order stay.",
@@ -69,19 +70,109 @@
     }
   },
   "nav-menu": {
-    "why": "Menu decoration goes (caption, pictograph tiles, a blurb under every item, the dot pill); the links, names and the icon button that is a control stay.",
+    "why": "Menu decoration goes (caption, pictograph tiles, a blurb under every item, the dot pill); the links, names and the icon button that is a control stay, and so does a hero heading, reworded or not.",
     "files": {
       "Header.tsx": {
         "keep": [
           "Svalbard", "Greenland", "Iceland", "Antarctica", "View all destinations",
           "aria-label=\"Open menu\"", "MenuIcon", "href={href}", "Begin your journey",
-          "Explore voyages", "Discover Untamed Wilderness", "Small-ship voyages"
+          "Explore voyages", "Small-ship"
         ],
+        "keep_regex": ["<h1[^>]*>[^<]*\\w[^<]*</h1>"],
         "cut": [
           "uppercase tracking-widest", "Popular destinations", "Polar expeditions", "bg-sky-100", "bg-sky-500",
           "Explore the Arctic's crown jewel", "Discover majestic ice fjords", "The land of fire and ice",
           "The last great wilderness", "Snowflake", "Compass"
         ],
+        "no_new_numbers": true
+      }
+    }
+  },
+  "links": {
+    "why": "Arrows after link text and generic names go, one action gets one name, and an icon-only button and a link that leaves the site keep their arrows.",
+    "files": {
+      "Links.tsx": {
+        "keep": ["aria-label=\"Next slide\"", "<ArrowRight />", "Status ↗", "Changelog", "Explore voyages", ">Voyages<", "Get started", "href=\"/signup\"", "href=\"/pricing\"", "href=\"/docs/api\""],
+        "cut": ["Learn more →", "Click here", "Start now", "<ArrowRight className=\"size-4\" />"],
+        "no_new_numbers": true
+      }
+    }
+  },
+  "states": {
+    "why": "Equal stat cards, a failure that names no way out and a list with no empty or loading state are reported as tasks and never edited.",
+    "files": {
+      "Overview.tsx": {
+        "unchanged": true
+      }
+    },
+    "report_regex": ["U24", "U25"]
+  },
+  "plan": {
+    "why": "With --plan nothing is edited: the plan is shown and the skill waits for the owner.",
+    "args": "--plan",
+    "files": {
+      "Landing.tsx": {
+        "unchanged": true
+      }
+    },
+    "report_regex": ["U1\\b", "(?i)apply|go ahead|proceed|change it|amend"]
+  },
+  "es": {
+    "why": "The rules apply to Spanish copy: filler, an eyebrow, numbering, a badge and reading instructions go; the social proof and the action stay.",
+    "files": {
+      "index.html": {
+        "keep": ["Más de 10.000 equipos confían en Libro", "Crear factura", "href=\"/facturas/nueva\""],
+        "cut": ["uppercase tracking-widest", "Presentamos Libro", "Por fin", "sin fisuras", "última generación", "solución integral", ">NUEVO<", "01 //", "Haz clic en el botón de abajo", "Pasa el cursor", "→"],
+        "no_new_numbers": true
+      }
+    }
+  },
+  "surface-new": {
+    "why": "With --surface a decorative edge bar and a scroll reveal go, with the hidden initial state the reveal needed; a bar on a real alert stays.",
+    "args": "--surface",
+    "files": {
+      "Card.tsx": {
+        "keep": ["role=\"alert\"", "border-l-4 border-red-500", "{failed &&", "Payment failed", "<h3>{title}</h3>", "{children}"],
+        "cut": ["border-indigo-500", "whileInView", "opacity: 0"]
+      }
+    }
+  },
+  "taste": {
+    "why": "The project's taste file bans exclamation marks, keeps the Beta badge and switches U11 off, so the emoji stays.",
+    "files": {
+      "Header.tsx": {
+        "keep": ["🚀 Rocket Deploy", ">Beta<", "Welcome back, {user.name}", "Deploy {deploy.id} is ready"],
+        "cut": ["!</p>"]
+      }
+    },
+    "report_regex": ["(?i)off by taste file"]
+  },
+  "de": {
+    "why": "The same rules on German copy: filler, an eyebrow, numbering, a badge, reading instructions and an arrow go; the social proof and the action stay.",
+    "files": {
+      "index.html": {
+        "keep": ["Mehr als 10.000 Teams vertrauen Buch", "Rechnung erstellen", "href=\"/rechnungen/neu\""],
+        "cut": ["uppercase tracking-widest", "Wir stellen vor", "Endlich", "nahtlose", "nächsten Generation", ">NEU<", "01 //", "Klicken Sie auf die Schaltfläche unten", "Fahren Sie mit der Maus", "→"],
+        "no_new_numbers": true
+      }
+    }
+  },
+  "ja": {
+    "why": "The same rules on Japanese copy, a script with no case or word spaces: filler, an eyebrow, numbering, a badge, reading instructions and an arrow go; the social proof and the action stay.",
+    "files": {
+      "index.html": {
+        "keep": ["10,000以上のチームがブックを信頼しています", "請求書を作成", "href=\"/invoices/new\""],
+        "cut": ["uppercase tracking-widest", "ご紹介", "ついに", "シームレス", "次世代", ">新着<", "01 //", "下のボタンをクリックして", "マウスを重ねると", "→"],
+        "no_new_numbers": true
+      }
+    }
+  },
+  "ar": {
+    "why": "The same rules on Arabic copy, a right-to-left script: filler, an eyebrow, numbering, a badge, reading instructions and the trailing arrow go; the social proof and the action stay.",
+    "files": {
+      "index.html": {
+        "keep": ["أكثر من 10,000 فريق يثقون بكتاب", "إنشاء فاتورة", "href=\"/invoices/new\""],
+        "cut": ["uppercase tracking-widest", "نقدّم لكم", "أخيرًا", "الجيل القادم", "بسلاسة", ">جديد<", "01 //", "انقر على الزر أدناه", "مرّر المؤشر", "←"],
         "no_new_numbers": true
       }
     }

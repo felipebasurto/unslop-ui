@@ -32,7 +32,13 @@ INCIDENTS = os.path.join(HERE, "incidents")
 FIXTURES = os.path.join(HERE, "fixtures")
 EXPECT = os.path.join(HERE, "expect.json")
 DEFAULT_AGENT = "claude -p --permission-mode acceptEdits"
-DEFAULT_PROMPT = "/unslop-ui ."
+# The working tree's skill is copied into each fixture under this name, so the
+# run tests the code in this checkout and not a copy installed on the machine.
+EVAL_SKILL = "unslop-ui-eval"
+SKILL_SOURCE = os.path.join(ROOT, "skills", "unslop-ui")
+DEFAULT_SKILL_DEST = os.path.join(".claude", "skills", EVAL_SKILL)
+DEFAULT_PROMPT = "/" + EVAL_SKILL + " ."
+MAX_PARALLEL = 4
 TIMEOUT_SECONDS = 900
 NUMBER = re.compile(r"\d+(?:[.,]\d+)*")
 
@@ -66,6 +72,18 @@ def check_file(before, after, spec):
         except ValueError as e:
             failures.append("invalid JSON: {}".format(e))
     return failures
+
+
+def check_report(name, workdir, expectations):
+    """Failures for what the agent said, from the run's saved report."""
+    patterns = expectations[name].get("report_regex", [])
+    if not patterns:
+        return []
+    path = os.path.join(workdir, name + ".report.md")
+    if not os.path.exists(path):
+        return ["no report to check"]
+    report = read(path)
+    return ["report lacks /{}/".format(p) for p in patterns if not re.search(p, report)]
 
 
 def check_fixture(name, after_dir, expectations):
@@ -119,20 +137,33 @@ def check_incident(incident):
     case = incident.get("counter")
     if case:
         counts = counter_output(case)
-        for name in sorted(set(counts) | set(case["expect"])):
-            want, got = case["expect"].get(name, 0), counts.get(name, 0)
+        failures += ["{}: not a rule this run counts (typo, or a flag or taste ban is missing)".format(name) for name in sorted(case["expect"]) if name not in counts]
+        for name in sorted(counts):
+            want, got = case["expect"].get(name, 0), counts[name]
             if want != got:
                 failures.append("{}: expected {}, counted {}".format(name, want, got))
     return failures
 
 
-def run_agent(agent, prompt, name, workdir):
+def install_skill(target, dest, source=SKILL_SOURCE):
+    """Copy a skill (the working tree's by default) into a fixture copy, renamed so it cannot clash with an installed one."""
+    skill = os.path.join(target, dest)
+    shutil.copytree(source, skill, ignore=shutil.ignore_patterns("__pycache__"))
+    path = os.path.join(skill, "SKILL.md")
+    text = read(path)
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(text.replace("name: unslop-ui\n", "name: {}\n".format(EVAL_SKILL), 1))
+
+
+def run_agent(agent, prompt, name, workdir, skill_dest=None, extra_args="", skill_source=SKILL_SOURCE):
     """Copy the fixture, run the agent in the copy, save its report next to it."""
     target = os.path.join(workdir, name)
     shutil.copytree(os.path.join(FIXTURES, name), target)
+    if skill_dest:
+        install_skill(target, skill_dest, skill_source)
     try:
         result = subprocess.run(
-            shlex.split(agent) + [prompt], cwd=target, capture_output=True, text=True, timeout=TIMEOUT_SECONDS
+            shlex.split(agent) + [(prompt + " " + extra_args).strip()], cwd=target, capture_output=True, text=True, timeout=TIMEOUT_SECONDS
         )
         report, code = result.stdout + result.stderr, result.returncode
     except subprocess.TimeoutExpired:
@@ -148,8 +179,11 @@ def main():
     parser = argparse.ArgumentParser(description="Run /unslop-ui on the fixtures and check the result.")
     parser.add_argument("fixtures", nargs="*", help="fixture names (default: all)")
     parser.add_argument("--agent", default=DEFAULT_AGENT, help="agent command; the prompt is appended (default: %(default)s)")
-    parser.add_argument("--prompt", default=DEFAULT_PROMPT, help="how this agent invokes the skill (default: %(default)s)")
+    parser.add_argument("--prompt", help="how this agent invokes the skill (default: {}, or /unslop-ui . with --no-install-skill)".format(DEFAULT_PROMPT))
     parser.add_argument("--check", metavar="DIR", help="skip the agent and check edited copies in DIR/<fixture>/")
+    parser.add_argument("--skill-dest", default=DEFAULT_SKILL_DEST, help="where in each fixture copy to install this checkout's skill (default: %(default)s)")
+    parser.add_argument("--skill-source", default=SKILL_SOURCE, help="skill folder to install, to compare another version (default: this checkout's)")
+    parser.add_argument("--no-install-skill", action="store_true", help="do not copy the skill; the agent uses what is installed")
     parser.add_argument("--incidents", action="store_true", help="replay the incident files; needs no agent")
     args = parser.parse_args()
 
@@ -174,12 +208,18 @@ def main():
     if not workdir:
         workdir = tempfile.mkdtemp(prefix="unslop-ui-eval-")
         print("Running {!r} on {} fixtures in {}".format(args.agent, len(names), workdir), file=sys.stderr)
-        with concurrent.futures.ThreadPoolExecutor(max_workers=len(names)) as pool:
-            exit_codes = dict(zip(names, pool.map(lambda n: run_agent(args.agent, args.prompt, n, workdir), names)))
+        dest = None if args.no_install_skill else args.skill_dest
+        prompt = args.prompt or ("/unslop-ui ." if args.no_install_skill else DEFAULT_PROMPT)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=min(len(names), MAX_PARALLEL)) as pool:
+            exit_codes = dict(zip(names, pool.map(
+                lambda n: run_agent(args.agent, prompt, n, workdir, dest, expectations[n].get("args", ""), args.skill_source), names)))
 
     failed_any = False
     for name in names:
         failed = check_fixture(name, os.path.join(workdir, name), expectations)
+        reported = check_report(name, workdir, expectations)
+        if reported:
+            failed["report"] = reported
         if exit_codes.get(name):
             failed["agent"] = ["exit code {}, see {}.report.md".format(exit_codes[name], name)]
         failed_any = failed_any or bool(failed)

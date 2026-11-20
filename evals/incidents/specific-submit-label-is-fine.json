@@ -1,0 +1,15 @@
+{
+  "id": "specific-submit-label-is-fine",
+  "report": "\"Submit order\" and a descriptive link were counted as generic names.",
+  "rule": {
+    "file": "plugins/unslop-ui/skills/unslop-ui/references/finding-tells.md",
+    "phrase": "The same text with the same `href` is fine."
+  },
+  "counter": {
+    "suffix": ".tsx",
+    "source": "<button type=\"submit\">Submit order</button>\n<a href=\"/p\">Read the pricing guide</a>\n",
+    "expect": {
+      "U23 repeated link label": 0
+    }
+  }
+}
