@@ -1,17 +1,19 @@
 #!/usr/bin/env python3
 """Count UI slop candidates in a file or folder.
 
-Usage: python3 count_tells.py [--surface] [--max N] <file-or-folder> [...]
+Usage: python3 count_tells.py [--surface] [--max N] [--taste PATH] [--format json|github] <file-or-folder> [...]
 
 Prints JSON: {rule: {"count": n, "examples": ["file:line", ...]}, "total": n}.
 Regex heuristic for before/after comparison. It misses tells that need
 reading (U3, U4, U5, U7, U8, U14) and can flag legitimate cases.
---surface adds the visual rules U17 to U20 (gradients and glows, off-scale
-spacing, extra-heavy weights, motion).
+--surface adds the visual rules U17 to U20 and U26 (gradients and glows,
+off-scale spacing, extra-heavy weights, motion, edge accent bars).
 --max N exits 1 when the total is above N, for CI.
 A taste file (.unslop-ui/taste.md in the current folder, or --taste PATH)
-turns on T1 to T3 for the bans it lists: exclamation marks, uppercase text,
-middle dots.
+turns on T1 to T3 for the bans it lists (exclamation marks, uppercase text,
+middle dots) and switches off every rule its Off section lists.
+--format github prints workflow annotations instead of JSON, for CI.
+Patterns cover English and Spanish copy.
 """
 import argparse
 import bisect
@@ -28,7 +30,7 @@ KINDS = {
     "python": {".py"},
 }
 KIND_OF = {ext: kind for kind, exts in KINDS.items() for ext in exts}
-SKIP_DIRS = {"node_modules", ".git", ".unslop-ui", "dist", "build", ".next", ".svelte-kit", ".astro", "coverage", ".venv", "venv", "__pycache__"}
+SKIP_DIRS = {"node_modules", ".git", ".unslop-ui", ".claude", ".cursor", ".agents", ".codex", "dist", "build", ".next", ".svelte-kit", ".astro", "coverage", ".venv", "venv", "__pycache__"}
 SKIP_FILES = {"package-lock.json", "package.json"}
 # Minified bundles and data dumps are not hand-written interface code.
 MAX_BYTES = 1_000_000
@@ -162,9 +164,11 @@ def lone_separators(text):
 # anywhere except inside a control; "New", "Pro" and friends only inside
 # something badge-shaped, because <Button>New</Button> is an action.
 BADGE_NODE = re.compile(
-    r">\s*(?:(LIVE|NEW|BETA|AI|PRO|HOT)|(Live|New|Beta|Pro|Hot|Popular|Most popular|Coming soon|Featured|Trending|AI-powered|Powered by AI))\s*<"
+    r">\s*(?:(LIVE|NEW|BETA|AI|PRO|HOT|NUEVO|EN VIVO|PRÓXIMAMENTE)"
+    r"|(Live|New|Beta|Pro|Hot|Popular|Most popular|Coming soon|Featured|Trending|AI-powered|Powered by AI"
+    r"|Nuevo|Novedad|Destacado|Tendencia|Más popular|Próximamente|En vivo|Con IA|Impulsado por IA))\s*<"
 )
-BADGE_LITERAL = re.compile(r"['\"`](?:LIVE|NEW|BETA|HOT)['\"`]")
+BADGE_LITERAL = re.compile(r"['\"`](?:LIVE|NEW|BETA|HOT|NUEVO|EN VIVO)['\"`]")
 CONTROL_TAGS = {
     "button", "Button", "a", "Link", "NavLink", "option", "label", "Label", "th", "td", "title",
     "MenuItem", "DropdownMenuItem", "SelectItem", "CommandItem", "TabsTrigger", "Tab",
@@ -237,8 +241,15 @@ def icon_tiles(text):
     return hits
 
 
-CHART_TYPE_TITLE = r"\b(?:bar|line|pie|area|scatter|donut|column) (?:chart|graph|plot) (?:of|showing|for)\b"
-READING_INSTRUCTIONS = r"\beach (?:bar|point|dot|line|slice|column|row) (?:represents|shows|is)\b|\bhover (?:over|for|to see)\b"
+CHART_TYPE_TITLE = (
+    r"\b(?:bar|line|pie|area|scatter|donut|column) (?:chart|graph|plot) (?:of|showing|for)\b"
+    r"|\bgr[aá]fic[oa] de (?:barras|l[ií]neas|sectores|[aá]reas|dispersi[oó]n|columnas|tarta|pastel|anillo) (?:de|del|que muestra|sobre|con)\b"
+)
+READING_INSTRUCTIONS = (
+    r"\beach (?:bar|point|dot|line|slice|column|row) (?:represents|shows|is)\b|\bhover (?:over|for|to see)\b"
+    r"|\bcada (?:barra|punto|l[ií]nea|sector|columna|fila) (?:representa|muestra|es)\b"
+    r"|\b(?:pasa|coloca|posiciona) el (?:cursor|rat[oó]n|mouse)\b"
+)
 
 # U15 and U16 run on the whole file, so a config formatted over several
 # lines counts the same as a one-liner.
@@ -290,6 +301,107 @@ def uppercase_text(text):
     return hits
 
 
+# U21: an arrow glyph on a link or button, or an arrow icon after its text.
+# An arrow that is the whole control (a Next button) or a bare glyph with no
+# text before it is not it.
+ARROW = re.compile(r"→|&rarr;|&#8594;|&#x2192;")
+LINK_TAGS = {"a", "Link", "NavLink", "button", "Button", "ButtonLink", "LinkButton"}
+LINK_NAMES = "|".join(sorted(LINK_TAGS, key=len, reverse=True))
+LINK_OPEN = re.compile(r"<(?:%s)\b(?:[^<>{}]|\{[^{}]*\})*>" % LINK_NAMES)
+LINK_CLOSE = re.compile(r"</(?:%s)>" % LINK_NAMES)
+ARROW_STRING = re.compile(r"""(["'`])[^"'`\n<>]*?[^\W\d_][^"'`\n<>]*?(?:→|&rarr;)\s*\1""")
+ARROW_MARKDOWN = re.compile(r"\[[^\]\n]*?[^\W\d_]\s*→\s*\]\(")
+ARROW_ICON = re.compile(
+    r">\s*[^<>{}\n]*?[^\W\d_]{2,}[^<>{}\n]*?\s*(?:\{\" \"\}\s*)?(<(?:Arrow(?:Right|Forward|LongRight)\w*|IconArrowRight\w*|MoveRight\w*)\b)"
+)
+HAS_WORDS = re.compile(r"[^\W\d_]{2,}")
+
+
+def arrow_links(text, strings=True):
+    hits = set()
+    for m in ARROW.finditer(text):
+        before = text[max(0, m.start() - 400):m.start()]
+        opens = list(LINK_OPEN.finditer(before))
+        if not opens or LINK_CLOSE.search(before, opens[-1].end()):
+            continue
+        inner = re.sub(r"<[^>]*>|\{[^{}]*\}", " ", before[opens[-1].end():])
+        if HAS_WORDS.search(inner):
+            hits.add(m.start())
+    # In prose a quote mark pairs with the wrong quote, so strings are code only.
+    for m in ARROW_STRING.finditer(text) if strings else ():
+        hits.add(m.start() + ARROW.search(m.group(0)).start())
+    for m in ARROW_MARKDOWN.finditer(text):
+        hits.add(m.start() + ARROW.search(m.group(0)).start())
+    hits.update(m.start(1) for m in ARROW_ICON.finditer(text))
+    return sorted(hits)
+
+
+def arrow_links_in_prose(text):
+    return arrow_links(text, strings=False)
+
+
+# U23: a link or button named by a generic phrase, so the name says nothing
+# about where it goes or what it does.
+VAGUE_LABEL = re.compile(
+    r">\s*(?:click here|here|learn more|read more|see more|submit|m[aá]s informaci[oó]n|saber m[aá]s|leer m[aá]s|ver m[aá]s"
+    r"|haz clic aqu[ií]|pulsa aqu[ií]|aqu[ií])\s*<",
+    re.I,
+)
+
+
+def vague_labels(text):
+    return [m.start() for m in VAGUE_LABEL.finditer(text) if enclosing_tag(text, m.start()) in LINK_TAGS]
+
+
+# unslop 7: filler vocabulary in a text node, a string or a line of prose.
+VOCABULARY_WORDS = (
+    r"seamless(?:ly)?|effortless(?:ly)?|cutting-edge|next-gen(?:eration)?|state-of-the-art"
+    r"|game-?chang(?:er|ing)|supercharg(?:e|es|ed|ing)|revolutioni[sz](?:e|es|ed|ing)"
+    r"|empower(?:s|ed|ing)?|unlock(?:s|ed|ing)? the (?:power|potential)|elevat(?:e|es|ed|ing) your"
+    r"|leverag(?:e|es|ed|ing)(?= (?:your|our|the|ai|data|cutting))|delv(?:e|es|ed|ing)|robust"
+    r"|world-class|best-in-class|to the next level"
+    r"|sin fisuras|sin esfuerzo|de vanguardia|de [uú]ltima generaci[oó]n"
+    r"|revolucion(?:a|an|ar|ario|aria|arios|arias)|al siguiente nivel|soluci[oó]n integral"
+    r"|potencia tu|impulsa tu|libera el poder|a otro nivel"
+)
+VOCABULARY = re.compile(r"(?<![\w-])(?:%s)(?![\w-])" % VOCABULARY_WORDS, re.I)
+TEXT_NODE = re.compile(r">([^<>{}]+)<")
+STRING_LITERAL = re.compile(r"""(["'`])((?:(?!\1)[^\n\\]){4,}?)\1""")
+
+
+def vocabulary_in_text(text):
+    hits = set()
+    for pattern in (TEXT_NODE, STRING_LITERAL):
+        group = 1 if pattern is TEXT_NODE else 2
+        for m in pattern.finditer(text):
+            hits.update(m.start(group) + v.start() for v in VOCABULARY.finditer(m.group(group)))
+    return sorted(hits)
+
+
+def vocabulary_in_prose(text):
+    return [m.start() for m in VOCABULARY.finditer(text)]
+
+
+# U26: a colored border of 3px or more on one edge of a box. A neutral gray
+# bar, a 1px or 2px rule (quotes, blockquotes) and a border on every edge are not it.
+EDGE_UTILITY = re.compile(r"(?<![\w:-])border-[ls]-(?:4|8|\[[3-9]px\])(?![\w-])")
+EDGE_COLOR = re.compile(
+    r"(?<![\w:-])border-(?![lrtbxyse]-)(?!(?:solid|dashed|dotted|none|border|input|muted|transparent|current"
+    r"|collapse|separate|spacing|opacity)\b)(?!(?:gray|slate|zinc|neutral|stone)-)[a-z]+(?:-\d{2,3})?(?:/\d+)?(?![\w-])"
+)
+EDGE_CSS = re.compile(r"\bborder-(?:left|inline-start)\s*:\s*(?:[3-9]|\d{2,})px\s+solid\s+(?!transparent\b)[^;}\s]+")
+
+
+def edge_bars(text):
+    hits, seen = [], set()
+    for m in EDGE_UTILITY.finditer(text):
+        start, end = quoted_segment(text, m.start())
+        if start not in seen and EDGE_COLOR.search(text[start:end]):
+            seen.add(start)
+            hits.append(start)
+    return hits + [m.start() for m in EDGE_CSS.finditer(text)]
+
+
 # U18: odd pixel values, and anything over 16 that is not a multiple of 4.
 # 2, 6, 10 and 14 are Tailwind's half steps (0.5, 1.5, 2.5, 3.5).
 SPACING = re.compile(
@@ -324,6 +436,11 @@ RULES = [
     ("U15 chart scaffolding", rx(SCAFFOLDING_PY), {"python"}),
     ("U16 legend", rx(LEGEND), MARKUP),
     ("U16 legend", rx(LEGEND_PY), {"python"}),
+    ("U21 arrow link", arrow_links, {"markup", "data", "python"}),
+    ("U21 arrow link", arrow_links_in_prose, {"prose"}),
+    ("U23 vague link label", vague_labels, MARKUP),
+    ("unslop 7 AI vocabulary", vocabulary_in_text, {"markup", "python"}),
+    ("unslop 7 AI vocabulary", vocabulary_in_prose, {"prose", "data"}),
     ("unslop 13 em dash", em_dashes, TEXT),
 ]
 STYLED = MARKUP | {"style"}
@@ -343,6 +460,7 @@ TASTE_WORDS = {
     "middle dot": "middle.?dot|bullet separator|separator",
 }
 TASTE_FILE = os.path.join(".unslop-ui", "taste.md")
+OFF_ID = re.compile(r"\b(?:U\d{1,2}|T\d{1,2}|unslop \d{1,2})\b", re.I)
 SURFACE_RULES = [
     ("U17 gradient or glow", rx(
         r"\bbg-(?:gradient|linear|radial|conic)-to?-?|(?:linear|radial|conic)-gradient\(|\bbg-clip-text\b|background-clip:\s*text"
@@ -353,8 +471,9 @@ SURFACE_RULES = [
         r"\bfont-(?:extrabold|black)\b|font-?[wW]eight\W{0,3}[89]00\b|\bfont-\[[89]00\]"
     ), STYLED),
     ("U20 motion", rx(
-        r"\btransition-all\b|transition:\s*all\b|\bhover:scale-|\banimate-bounce\b"
+        r"\btransition-all\b|transition:\s*all\b|\bhover:scale-|\banimate-bounce\b|\bwhileInView\b|\bdata-aos\b"
     ), STYLED),
+    ("U26 edge accent bar", edge_bars, STYLED),
 ]
 
 
@@ -372,23 +491,35 @@ def iter_files(targets):
                     yield os.path.join(root, name)
 
 
-def read_bans(path):
-    """The counted rules a taste file's Bans section switches on, as a set of keys."""
+def read_taste(path):
+    """(bans, off) from a taste file: the counted rules its Bans section switches on, and the rule ids its Off section lists."""
     try:
         with open(path, encoding="utf-8") as f:
             text = f.read()
     except OSError:
-        return set()
-    section = re.search(r"^##\s+Bans\s*$(.*?)(?=^##\s|\Z)", text, re.M | re.S | re.I)
-    lines = [l for l in (section.group(1) if section else "").splitlines() if re.match(r"\s*[-*]\s+\S", l)]
-    return {key for key, words in TASTE_WORDS.items() if any(re.search(words, l, re.I) for l in lines)}
+        return set(), set()
+
+    def bullets(heading):
+        section = re.search(r"^##\s+%s\s*$(.*?)(?=^##\s|\Z)" % heading, text, re.M | re.S | re.I)
+        return [l for l in (section.group(1) if section else "").splitlines() if re.match(r"\s*[-*]\s+\S", l)]
+
+    bans = {key for key, words in TASTE_WORDS.items() if any(re.search(words, l, re.I) for l in bullets("Bans"))}
+    off = {m.group(0).lower().replace("  ", " ") for l in bullets("Off") for m in OFF_ID.finditer(l)}
+    return bans, off
 
 
-def count(targets, surface=False, bans=()):
+def rule_id(name):
+    """"U11 emoji" is U11, "unslop 13 em dash" is "unslop 13"."""
+    parts = name.lower().split()
+    return " ".join(parts[:2]) if parts[0] == "unslop" else parts[0]
+
+
+def count(targets, surface=False, bans=(), off=()):
     rules = RULES + (SURFACE_RULES if surface else [])
     for key in TASTE_WORDS:
         if key in bans:
             rules = rules + TASTE_RULES[key]
+    rules = [rule for rule in rules if rule_id(rule[0]) not in off]
     results = {name: {"count": 0, "examples": []} for name, _, _ in rules}
     for path in iter_files(targets):
         # A file named on the command line is scanned whatever its extension.
@@ -414,12 +545,33 @@ def count(targets, surface=False, bans=()):
     return results
 
 
+def display_id(rule):
+    return rule if rule.startswith("unslop") else rule.upper()
+
+
+def annotations(results):
+    """GitHub workflow commands for the examples the counter kept, then a summary line."""
+    lines = []
+    for rule, entry in results.items():
+        if rule == "total":
+            continue
+        for example in entry["examples"]:
+            path, _, line = example.rpartition(":")
+            if os.path.isabs(path):
+                path = os.path.relpath(path)
+            lines.append("::warning file={},line={},title={}::Possible AI tell. Read it and keep it if it earns its place.".format(
+                path[2:] if path.startswith("./") else path, line, rule))
+    lines.append("unslop-ui: {} possible tells".format(results["total"]))
+    return lines
+
+
 def main():
     parser = argparse.ArgumentParser(description="Count UI slop candidates in files or folders.")
     parser.add_argument("targets", nargs="+", metavar="file-or-folder")
-    parser.add_argument("--surface", action="store_true", help="also count U17 to U20")
+    parser.add_argument("--surface", action="store_true", help="also count U17 to U20 and U26")
     parser.add_argument("--max", type=int, metavar="N", help="exit 1 when the total is above N")
-    parser.add_argument("--taste", metavar="PATH", help="taste file whose Bans to count (default: {})".format(TASTE_FILE))
+    parser.add_argument("--taste", metavar="PATH", help="taste file to read (default: {})".format(TASTE_FILE))
+    parser.add_argument("--format", choices=("json", "github"), default="json", help="json (default) or github workflow annotations")
     args = parser.parse_args()
 
     missing = [t for t in args.targets + ([args.taste] if args.taste else []) if not os.path.exists(t)]
@@ -427,8 +579,14 @@ def main():
         print("Not found: " + ", ".join(missing), file=sys.stderr)
         sys.exit(2)
 
-    results = count(args.targets, args.surface, read_bans(args.taste or TASTE_FILE))
-    print(json.dumps(results, indent=2, ensure_ascii=False))
+    bans, off = read_taste(args.taste or TASTE_FILE)
+    if off:
+        print("Off by taste file: " + ", ".join(sorted(display_id(rule) for rule in off)), file=sys.stderr)
+    results = count(args.targets, args.surface, bans, off)
+    if args.format == "github":
+        print("\n".join(annotations(results)))
+    else:
+        print(json.dumps(results, indent=2, ensure_ascii=False))
     if args.max is not None and results["total"] > args.max:
         sys.exit(1)
 

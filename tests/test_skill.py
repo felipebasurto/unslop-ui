@@ -55,6 +55,7 @@ class CounterTest(unittest.TestCase):
             "U13 reading instructions": 1,
             "U15 chart scaffolding": 4,
             "U16 legend": 1,
+            "unslop 7 AI vocabulary": 4,
             "unslop 13 em dash": 3,
         }
         for rule, n in expected.items():
@@ -265,6 +266,117 @@ export const options = {
             os.mkdir(os.path.join(folder, ".unslop-ui"))
             with open(os.path.join(folder, ".unslop-ui", "taste.md"), "w", encoding="utf-8") as f:
                 f.write("## Bans\n\n- Exclamation marks\n\nNo more \u2014 and no emoji \U0001F680!\n")
+            self.assertEqual(count(folder)["total"], 0)
+
+    def test_counts_arrows_on_links_and_buttons(self):
+        source = (
+            '<a href="/x">Learn more →</a>\n'
+            '<Link href="/x">Read the docs <span aria-hidden>→</span></Link>\n'
+            '<Button>Get started <ArrowRight className="size-4" /></Button>\n'
+            '<a href="/x">Learn more &rarr;</a>\n'
+            'const cta = { label: "See pricing →" };\n'
+        )
+        self.assertEqual(count_source(source, ".tsx")["U21 arrow link"], 5)
+        self.assertEqual(count_source("[Learn more →](/docs)\n", ".md")["U21 arrow link"], 1)
+        prose = 'Mapping: humedades → "cubo"; fontanería → "llave". Then `01` → `02` → `03`.\n'
+        self.assertEqual(count_source(prose, ".md")["U21 arrow link"], 0)
+
+    def test_leaves_arrows_that_carry_meaning_alone(self):
+        source = (
+            '<button aria-label="Next">→</button>\n'
+            '<Button onClick={() => next()}>→</Button>\n'
+            '<button aria-label="Next"><ArrowRight /></button>\n'
+            '<p>Step one → step two</p>\n'
+            '<a href="https://x.dev">Docs ↗</a>\n'
+            '<Link href="/a">Docs</Link> → <Link href="/b">API</Link>\n'
+            '<Button variant="outline" size="icon"\n  {...props}\n>\n  <ArrowRight className="h-4 w-4" />\n  <span className="sr-only">Next</span>\n</Button>\n'
+        )
+        self.assertEqual(count_source(source, ".tsx")["U21 arrow link"], 0)
+
+    def test_counts_generic_link_labels_only_on_links_and_buttons(self):
+        source = (
+            '<a href="/x">Click here</a>\n<button type="submit">Submit</button>\n'
+            '<Link href="/docs">Learn more</Link>\n<a href="/es">Más información</a>\n'
+        )
+        self.assertEqual(count_source(source, ".tsx")["U23 vague link label"], 4)
+        legit = '<h2>Here</h2>\n<span>Learn more</span>\n<a href="/p">Read the pricing guide</a>\n<button>Submit order</button>\n'
+        self.assertEqual(count_source(legit, ".tsx")["U23 vague link label"], 0)
+
+    def test_counts_filler_vocabulary_in_text_but_not_in_code(self):
+        source = (
+            '<p>Seamlessly manage a robust, cutting-edge workflow.</p>\n'
+            'const hero = "Empower your team";\n'
+            'const robustParse = () => seamlessScroll;\n'
+            '<div className="seamless-grid robust-card" />\n'
+            '// seamless\n'
+        )
+        self.assertEqual(count_source(source, ".tsx")["unslop 7 AI vocabulary"], 4)
+        self.assertEqual(count_source("We leverage your data. Leverage is also a finance term.\n", ".md")["unslop 7 AI vocabulary"], 1)
+        self.assertEqual(count_source('{"sub": "Gestiona tu dinero sin fisuras"}\n', ".json")["unslop 7 AI vocabulary"], 1)
+
+    def test_counts_spanish_copy(self):
+        source = (
+            '<span>NUEVO</span>\n<span class="chip">Destacado</span>\n<button>Nuevo</button>\n'
+            '<h2>Gráfico de barras de ingresos</h2>\n<p>Cada barra representa un mes. Pasa el cursor para ver el valor.</p>\n'
+            '<p>Una solución integral de última generación.</p>\n'
+        )
+        counts = count_source(source, ".html")
+        self.assertEqual(counts["U9 badge word"], 2)
+        self.assertEqual(counts["U12 chart-type title"], 1)
+        self.assertEqual(counts["U13 reading instructions"], 1)
+        self.assertEqual(counts["unslop 7 AI vocabulary"], 2)
+
+    def test_counts_edge_accent_bars_with_surface(self):
+        source = (
+            '<div className="rounded-lg border-l-4 border-indigo-500 p-4">a</div>\n'
+            '<div className="border-s-[3px] border-primary">b</div>\n'
+            '.card { border-left: 4px solid #6366f1; }\n'
+        )
+        self.assertEqual(count_source(source, ".tsx", "--surface")["U26 edge accent bar"], 3)
+        self.assertNotIn("U26 edge accent bar", count_source(source, ".tsx"))
+        legit = (
+            '<div className="border-l-4 border-gray-200">a</div>\n<div className="border-l border-red-500">b</div>\n'
+            '<div className="border-t-4 border-indigo-500">c</div>\n<div className="border-l-4">d</div>\n'
+            '<div className="border-4 border-indigo-500">e</div>\n<div className="border-l-2 border-indigo-500">f</div>\n'
+            '.quote { border-left: 2px solid var(--accent); }\n'
+        )
+        self.assertEqual(count_source(legit, ".tsx", "--surface")["U26 edge accent bar"], 0)
+
+    def test_scroll_reveal_counts_as_motion(self):
+        counts = count_source('<motion.div whileInView={{ opacity: 1 }} />\n<div data-aos="fade-up" />\n', ".tsx", "--surface")
+        self.assertEqual(counts["U20 motion"], 2)
+
+    def test_taste_off_switches_rules_off(self):
+        source = '<h1>🚀 Fast — and simple</h1>\n<p className="uppercase tracking-widest">Eyebrow</p>\n'
+        with tempfile.TemporaryDirectory() as folder:
+            path = os.path.join(folder, "page.tsx")
+            taste = os.path.join(folder, "taste.md")
+            with open(path, "w", encoding="utf-8") as f:
+                f.write(source)
+            with open(taste, "w", encoding="utf-8") as f:
+                f.write("## Bans\n\n- Exclamation marks\n\n## Off\n\n- U11 we use emoji in product names\n- unslop 13, the brand writes with dashes\n")
+            counts = count("--taste", taste, path)
+            result = run(COUNTER, "--taste", taste, path)
+        self.assertNotIn("U11 emoji", counts)
+        self.assertNotIn("unslop 13 em dash", counts)
+        self.assertEqual(counts["U1 eyebrow"], 1)
+        self.assertIn("Off by taste file: U11, unslop 13", result.stderr)
+
+    def test_github_format_prints_annotations_and_a_summary(self):
+        result = run(COUNTER, "--format", "github", "--max", "0", os.path.join(ROOT, "examples", "before"))
+        self.assertEqual(result.returncode, 1)
+        lines = result.stdout.splitlines()
+        self.assertTrue(lines[0].startswith("::warning file=examples/before/"), lines[0])
+        self.assertRegex(lines[0], r",line=\d+,title=U1 eyebrow::")
+        self.assertEqual(lines[-1], "unslop-ui: 35 possible tells")
+        clean = run(COUNTER, "--format", "github", "--max", "0", os.path.join(ROOT, "examples", "after"))
+        self.assertEqual((clean.returncode, clean.stdout.strip()), (0, "unslop-ui: 0 possible tells"))
+
+    def test_agent_config_folders_are_not_scanned(self):
+        with tempfile.TemporaryDirectory() as folder:
+            os.makedirs(os.path.join(folder, ".claude", "skills", "x"))
+            with open(os.path.join(folder, ".claude", "skills", "x", "SKILL.md"), "w", encoding="utf-8") as f:
+                f.write("A — dash and 🚀 emoji\n")
             self.assertEqual(count(folder)["total"], 0)
 
     def test_max_sets_the_exit_code(self):
