@@ -1,0 +1,15 @@
+{
+  "id": "specific-submit-label-is-fine",
+  "report": "\"Submit order\" was counted as a generic button name.",
+  "rule": {
+    "file": "skills/unslop-ui/SKILL.md",
+    "phrase": "Name the destination or the result"
+  },
+  "counter": {
+    "suffix": ".tsx",
+    "source": "<button type=\"submit\">Submit order</button>\n<a href=\"/p\">Read the pricing guide</a>\n",
+    "expect": {
+      "U23 vague link label": 0
+    }
+  }
+}

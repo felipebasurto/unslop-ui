@@ -1,0 +1,14 @@
+{
+  "id": "rules-the-taste-file-turns-off-are-not-counted",
+  "report": "A team that puts emoji in product names kept getting U11 hits.",
+  "rule": {
+    "file": "skills/unslop-ui/SKILL.md",
+    "phrase": "Each bullet under `## Off`"
+  },
+  "counter": {
+    "suffix": ".tsx",
+    "taste": "## Off\n\n- U11, our product names use emoji\n",
+    "source": "<h1>🚀 Rocket Deploy</h1>\n",
+    "expect": {}
+  }
+}

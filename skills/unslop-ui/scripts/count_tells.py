@@ -129,6 +129,18 @@ NUMBERING = (
     r"|padStart\(\s*2\s*,\s*['\"`]0['\"`]\s*\)"
     r"|>\s*0\{"
 )
+# In prose a backticked "01" is a code reference, not a label.
+NUMBERING_PROSE = (
+    r">\s*0[1-9](?![/:.\-]\d)(?:\s|<|\.|/)"
+    r"|>[^<>{}\n]*?(?<!:)//[^<>\n]*<"
+    r"|>\s*0\{"
+)
+# In prose a backticked "01" is a code reference, not a label.
+NUMBERING_PROSE = (
+    r">\s*0[1-9](?![/:.\-]\d)(?:\s|<|\.|/)"
+    r"|>[^<>{}\n]*?(?<!:)//[^<>\n]*<"
+    r"|>\s*0\{"
+)
 
 # U6: two or more separators close together make a chain. One separator
 # ("Jan 3 · 14:02") is ordinary punctuation.
@@ -424,7 +436,8 @@ def off_scale(text):
 MARKUP = {"markup", "prose"}
 RULES = [
     ("U1 eyebrow", eyebrows, MARKUP | {"style"}),
-    ("U2 decorative numbering", rx(NUMBERING), MARKUP),
+    ("U2 decorative numbering", rx(NUMBERING), {"markup"}),
+    ("U2 decorative numbering", rx(NUMBERING_PROSE), {"prose"}),
     ("U6 status string", status_strings, TEXT),
     ("U9 badge word", badge_words, MARKUP | {"data"}),
     ("U10 status dot", status_dots, MARKUP),

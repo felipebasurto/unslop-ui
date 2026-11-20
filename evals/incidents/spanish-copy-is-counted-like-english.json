@@ -1,0 +1,16 @@
+{
+  "id": "spanish-copy-is-counted-like-english",
+  "report": "Spanish badges and filler passed the counter, which only knew English words.",
+  "rule": {
+    "file": "skills/unslop-ui/SKILL.md",
+    "phrase": "The rules apply in any language"
+  },
+  "counter": {
+    "suffix": ".html",
+    "source": "<span>NUEVO</span>\n<p>Una solución integral sin fisuras</p>\n",
+    "expect": {
+      "U9 badge word": 1,
+      "unslop 7 AI vocabulary": 2
+    }
+  }
+}

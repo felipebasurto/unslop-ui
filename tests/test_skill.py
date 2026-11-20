@@ -131,6 +131,14 @@ export function Legit({ rows, loading, progress }) {
         source = '<span>{String(i + 1).padStart(2, "0")}</span>\n<span>\n  02\n</span>\n<b>0{i + 1}</b>\n'
         self.assertEqual(count_source(source, ".tsx")["U2 decorative numbering"], 3)
 
+    def test_backticked_numbers_in_prose_are_code_not_numbering(self):
+        self.assertEqual(count_source("Run `01` then `02`, in order.\n", ".md")["U2 decorative numbering"], 0)
+        self.assertEqual(count_source("<span>01 //</span> Features\n", ".mdx")["U2 decorative numbering"], 1)
+
+    def test_backticked_numbers_in_prose_are_code_not_numbering(self):
+        self.assertEqual(count_source("Run `01` then `02`, in order.\n", ".md")["U2 decorative numbering"], 0)
+        self.assertEqual(count_source("<span>01 //</span> Features\n", ".mdx")["U2 decorative numbering"], 1)
+
     def test_counts_an_eyebrow_split_over_lines(self):
         source = '<p\n  className="text-xs font-medium uppercase\n    tracking-widest text-indigo-500"\n>\n  Features\n</p>\n'
         self.assertEqual(count_source(source, ".tsx")["U1 eyebrow"], 1)
@@ -517,6 +525,31 @@ class EvalFixturesTest(unittest.TestCase):
                 after = after.replace(needle, "")
             self.assertEqual(evals_run.check_file(before, after, spec), [], "{}/{}".format(name, filename))
 
+    def test_report_checks_read_what_the_agent_said(self):
+        expectations = {"x": {"files": {}, "report_regex": ["U24", "(?i)tasks?"]}, "y": {"files": {}}}
+        with tempfile.TemporaryDirectory() as folder:
+            self.assertEqual(evals_run.check_report("y", folder, expectations), [])
+            self.assertEqual(evals_run.check_report("x", folder, expectations), ["no report to check"])
+            with open(os.path.join(folder, "x.report.md"), "w", encoding="utf-8") as f:
+                f.write("U24 equal cards: a task for you")
+            self.assertEqual(evals_run.check_report("x", folder, expectations), [])
+            with open(os.path.join(folder, "x.report.md"), "w", encoding="utf-8") as f:
+                f.write("Done.")
+            self.assertEqual(len(evals_run.check_report("x", folder, expectations)), 2)
+
+    def test_the_checkout_skill_is_installed_under_its_own_name(self):
+        with tempfile.TemporaryDirectory() as folder:
+            evals_run.install_skill(folder, evals_run.DEFAULT_SKILL_DEST)
+            skill = os.path.join(folder, evals_run.DEFAULT_SKILL_DEST)
+            text = evals_run.read(os.path.join(skill, "SKILL.md"))
+            self.assertIn("name: unslop-ui-eval\n", text)
+            self.assertTrue(os.path.exists(os.path.join(skill, "scripts", "count_tells.py")))
+        self.assertEqual(evals_run.DEFAULT_PROMPT, "/unslop-ui-eval .")
+
+    def test_fixtures_that_need_flags_name_them(self):
+        self.assertEqual(self.expectations["plan"]["args"], "--plan")
+        self.assertEqual(self.expectations["surface-new"]["args"], "--surface")
+
     def test_reports_lost_text_invented_numbers_and_edits_to_a_clean_file(self):
         self.assertEqual(evals_run.check_file("a 12", "a 12 b", {"unchanged": True}), ["changed, expected no edit"])
         failures = evals_run.check_file("keep cut 12", "cut 12 in 3 seconds", {"keep": ["keep"], "cut": ["cut"], "no_new_numbers": True})
@@ -541,7 +574,7 @@ class IncidentTest(unittest.TestCase):
             self.assertTrue(incident["report"])
             self.assertTrue(incident["rule"]["phrase"])
             self.assertTrue(incident["counter"]["source"])
-            self.assertTrue(incident["counter"]["expect"])
+            self.assertIsInstance(incident["counter"]["expect"], dict)  # empty means every rule counts 0
 
     def test_an_incident_fails_when_the_rule_is_deleted_or_the_counter_regresses(self):
         incident = evals_run.load_incidents()[0]
