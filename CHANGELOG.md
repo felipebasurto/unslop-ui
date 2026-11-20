@@ -41,7 +41,7 @@ The rule set, the counter output and the taste file format are now stable.
 
 - Nine new fixtures (`links`, `states`, `plan`, `es`, `de`, `ja`, `ar`, `surface-new`, `taste`), and fixtures can set `args` and `report_regex`.
 - `evals/run.py` installs this checkout's skill into each fixture copy, so a run tests the working tree and not an installed copy.
-- 22 incident cases replay with `evals/run.py --incidents`, and an expectation that names a rule the run does not count now fails.
+- 24 incident cases replay with `evals/run.py --incidents`, and an expectation that names a rule the run does not count now fails.
 
 ## 0.6.0
 

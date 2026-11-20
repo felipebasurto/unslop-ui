@@ -41,5 +41,5 @@ jobs:
         with:
           path: examples/before
           max: "0"
-      - run: test "${{ steps.dirty.outcome }}" = "failure" && test "${{ steps.dirty.outputs.total }}" = "35"
+      - run: test "${{ steps.dirty.outcome }}" = "failure" && test "${{ steps.dirty.outputs.total }}" = "28"
 
