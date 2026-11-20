@@ -15,6 +15,7 @@ Agents decorate everything they build: a tiny uppercase label over every heading
 - **Subtractive.** It deletes first and writes little. It never adds a number, a speed or a feature the code doesn't show.
 - **Safe by default.** Without `--surface` it touches only visible text and decoration, never logic, data, colors or layout. It keeps `aria-label`, `alt`, visible form labels and anything tied to real state.
 - **Reports, not just edits.** Every run ends with a table of counts, the strings it rewrote, what it kept on purpose and the tasks it left for you.
+- **Any language.** The counter never reads words, only structure, so it behaves the same on every language. The agent reads your copy in the language it is written in and makes the call.
 - **Plan first, if you want.** `--plan` shows every cut and rewrite and waits for your OK before touching a file.
 
 ## Quick start

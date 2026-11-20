@@ -43,7 +43,7 @@ Ids are stable. Cite them as U1 to U26 in the report. The examples are in Englis
 ### Interface copy
 
 - **U1. Eyebrow labels.** Small uppercase or letter-spaced text above a heading ("PASSPORT", "FEATURES", "HOW IT WORKS"). It also comes as a pill or chip, often with a dot ("● POLAR EXPEDITIONS"), and as a caption over a menu or dropdown list ("POPULAR DESTINATIONS"). Delete it. The heading already says what the section is.
-- **U2. Decorative numbering.** "01 02 03", "01 // Features", "§", "//" prefixes. Delete the numbers, not the text they label. Keep the numbers when the order is real and the user follows it (steps of a checkout, a numbered install guide, commands to run in order): a list of real steps stays whole, hand-written numbers included: a CSS reset hides the numbers an `<ol>` would draw.
+- **U2. Decorative numbering.** "01 02 03", "01 // Features", "§", "//" prefixes. Delete the numbers, not the text they label. Ask whether someone following the screen would lose their place without them: three feature cards, no; install steps, yes. Keep the numbers when the order is real and the user follows it (steps of a checkout, a numbered install guide, commands to run in order): a list of real steps stays whole, hand-written numbers included: a CSS reset hides the numbers an `<ol>` would draw.
 - **U3. Subtitle reflex.** A subtitle under every heading, or a line above the H1. Keep one only when it states a fact the heading doesn't. "Analytics / Understand your data better" loses the second line. The same goes for a blurb under every item of a menu, dropdown or card list ("Greenland / Discover majestic ice fjords"): keep it only when the names alone can't tell the items apart (plan tiers, settings), and then only for the items that need it.
 - **U4. Botsplaining.** Captions, helper text and descriptions that narrate what the element visibly does ("Click the button below to get started", "This chart shows revenue over time"). Delete. Empty states, error messages and confirmations of destructive actions are not deleted, but they are edited: one or two plain sentences that say what happened and what to do next, without "Oops!" or an exclamation mark. One that already does that stays exactly as it is. The next step comes from what the code shows (the field, the retry, the setting). With nothing to point to, state the failure plainly and list the missing way out as a task.
 - **U5. Leaked design notes.** Text about how the screen works or why it was designed that way, long parentheticals, "(updates in real time)", "(powered by AI)". Delete it. If a user would genuinely look for it, put it inline next to the control it explains, not behind a tooltip or a hover.
@@ -99,11 +99,13 @@ For before/after pairs, read [references/examples.md](references/examples.md) wh
 - If the project already has tokens (Tailwind theme, CSS variables, a design-system package), fix toward those and not toward the fallback values in `references/tokens.md`.
 - Never change a screen that has nothing to cut. See the verdict in step 3.
 - When you delete an element, delete what existed only for it: its now-empty wrapper, a wrapper left holding a single child it only grouped, the margin or gap, the import or variable nothing else uses.
+- Never delete a link or a button, whatever its text says. Strip its arrow or decoration, or rename it as U23 says, but it keeps its `href` or handler.
 - Never delete `aria-label`, `alt`, `title` on icon buttons, or screen-reader-only text. If cut visible text was the only accessible name, move it into `aria-label`.
 - A form field keeps a visible label tied to its input (`for` and `id`, or a wrapping `<label>`). Never swap it for a placeholder or an `aria-label`.
 - Text that comes from data, props, i18n files or a CMS: edit it at its source (the translation file, the fixture) or report it, don't hard-code a replacement in the component.
 - Claims you cannot verify from the code (customer counts, uptime, ratings, testimonials, customer logos): do not delete or rewrite them. List each as a task.
 - If a flagged case earns its place (real state, real order, legal text), keep it and say why in the report.
+- Content that looks misplaced or off-topic is a task for the owner, never a deletion. Delete only what a rule names.
 
 ## Taste file
 
@@ -150,7 +152,7 @@ If you can render the screen (a dev server is running, or you have browser tools
 
 **Plan (only with `--plan`).** Stop after the verdict and change nothing. Show the table with the Before column only, then one line per planned change (`file:line  U1  delete "INTRODUCING LEDGER"`), each rewrite as old → new, what you would keep on purpose and the tasks. End with one question: apply this plan, or change it? Edit only after the owner answers, and apply the plan exactly as they amended it.
 
-**Report.** Write it in the language the owner used to ask you, and quote screen copy as it is, untranslated. The table, then up to three lists, and nothing else. When a taste file switches rules off, one line goes above the table: `Off by taste file: U11, unslop 13`. Use your tally from steps 1 and 2. Kept is how many of the After hits you left on purpose.
+**Report.** Write it in the language the owner used to ask you, and quote screen copy as it is, untranslated. Open with the verdict on a line of its own (`Verdict: none`). Then the table, then up to three lists, and nothing else. When a taste file switches rules off, one line goes above the table: `Off by taste file: U11, unslop 13`. Use your tally from steps 1 and 2. Kept is how many of the After hits you left on purpose.
 
 | Rule | Before | After | Kept |
 |---|---|---|---|
