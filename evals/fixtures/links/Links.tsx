@@ -11,6 +11,7 @@ export function Links() {
       <button aria-label="Next slide"><ArrowRight /></button>
       <a href="https://status.example.com">Status ↗</a>
       <Link href="/changelog">Changelog</Link>
+      <a href="/voyages">Explore voyages</a>
     </section>
   );
 }

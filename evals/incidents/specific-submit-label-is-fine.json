@@ -3,7 +3,7 @@
   "report": "\"Submit order\" was counted as a generic button name.",
   "rule": {
     "file": "skills/unslop-ui/SKILL.md",
-    "phrase": "Name the destination or the result"
+    "phrase": "A label that already says what it does"
   },
   "counter": {
     "suffix": ".tsx",

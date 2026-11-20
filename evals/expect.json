@@ -4,7 +4,7 @@
     "files": {
       "Members.tsx": { "unchanged": true }
     },
-    "report_regex": ["(?i)\\bnone\\b|nothing to cut|no tells|left (it|the screen|everything) (alone|untouched)"]
+    "report_regex": ["(?i)\\bnone\\b|nothing to cut|nothing (was )?edited|already clean|no tells|left (it|the screen|everything) (alone|untouched)"]
   },
   "real-state": {
     "why": "Decoration goes; a badge, a dot and numbering that reflect real state or real order stay.",
@@ -91,7 +91,7 @@
     "why": "Arrows after link text and generic names go, one action gets one name, and an icon-only button and a link that leaves the site keep their arrows.",
     "files": {
       "Links.tsx": {
-        "keep": ["aria-label=\"Next slide\"", "<ArrowRight />", "Status ↗", "Changelog", "Get started", "href=\"/signup\"", "href=\"/pricing\"", "href=\"/docs/api\""],
+        "keep": ["aria-label=\"Next slide\"", "<ArrowRight />", "Status ↗", "Changelog", "Explore voyages", "Get started", "href=\"/signup\"", "href=\"/pricing\"", "href=\"/docs/api\""],
         "cut": ["Learn more →", "Click here", "Start now", "<ArrowRight className=\"size-4\" />"],
         "no_new_numbers": true
       }

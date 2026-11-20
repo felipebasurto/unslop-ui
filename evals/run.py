@@ -145,22 +145,22 @@ def check_incident(incident):
     return failures
 
 
-def install_skill(target, dest):
-    """Copy the working tree's skill into a fixture copy, renamed so it cannot clash with an installed one."""
+def install_skill(target, dest, source=SKILL_SOURCE):
+    """Copy a skill (the working tree's by default) into a fixture copy, renamed so it cannot clash with an installed one."""
     skill = os.path.join(target, dest)
-    shutil.copytree(SKILL_SOURCE, skill, ignore=shutil.ignore_patterns("__pycache__"))
+    shutil.copytree(source, skill, ignore=shutil.ignore_patterns("__pycache__"))
     path = os.path.join(skill, "SKILL.md")
     text = read(path)
     with open(path, "w", encoding="utf-8") as f:
         f.write(text.replace("name: unslop-ui\n", "name: {}\n".format(EVAL_SKILL), 1))
 
 
-def run_agent(agent, prompt, name, workdir, skill_dest=None, extra_args=""):
+def run_agent(agent, prompt, name, workdir, skill_dest=None, extra_args="", skill_source=SKILL_SOURCE):
     """Copy the fixture, run the agent in the copy, save its report next to it."""
     target = os.path.join(workdir, name)
     shutil.copytree(os.path.join(FIXTURES, name), target)
     if skill_dest:
-        install_skill(target, skill_dest)
+        install_skill(target, skill_dest, skill_source)
     try:
         result = subprocess.run(
             shlex.split(agent) + [(prompt + " " + extra_args).strip()], cwd=target, capture_output=True, text=True, timeout=TIMEOUT_SECONDS
@@ -182,6 +182,7 @@ def main():
     parser.add_argument("--prompt", help="how this agent invokes the skill (default: {}, or /unslop-ui . with --no-install-skill)".format(DEFAULT_PROMPT))
     parser.add_argument("--check", metavar="DIR", help="skip the agent and check edited copies in DIR/<fixture>/")
     parser.add_argument("--skill-dest", default=DEFAULT_SKILL_DEST, help="where in each fixture copy to install this checkout's skill (default: %(default)s)")
+    parser.add_argument("--skill-source", default=SKILL_SOURCE, help="skill folder to install, to compare another version (default: this checkout's)")
     parser.add_argument("--no-install-skill", action="store_true", help="do not copy the skill; the agent uses what is installed")
     parser.add_argument("--incidents", action="store_true", help="replay the incident files; needs no agent")
     args = parser.parse_args()
@@ -211,7 +212,7 @@ def main():
         prompt = args.prompt or ("/unslop-ui ." if args.no_install_skill else DEFAULT_PROMPT)
         with concurrent.futures.ThreadPoolExecutor(max_workers=min(len(names), MAX_PARALLEL)) as pool:
             exit_codes = dict(zip(names, pool.map(
-                lambda n: run_agent(args.agent, prompt, n, workdir, dest, expectations[n].get("args", "")), names)))
+                lambda n: run_agent(args.agent, prompt, n, workdir, dest, expectations[n].get("args", ""), args.skill_source), names)))
 
     failed_any = False
     for name in names:

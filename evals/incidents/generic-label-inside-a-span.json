@@ -3,7 +3,7 @@
   "report": "\"Learn more\" wrapped in a span inside a link was missed.",
   "rule": {
     "file": "skills/unslop-ui/SKILL.md",
-    "phrase": "a name that says nothing about where it goes or what it does"
+    "phrase": "carries no information about where it goes or what it does"
   },
   "counter": {
     "suffix": ".tsx",
