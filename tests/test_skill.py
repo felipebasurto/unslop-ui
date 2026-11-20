@@ -135,10 +135,6 @@ export function Legit({ rows, loading, progress }) {
         self.assertEqual(count_source("Run `01` then `02`, in order.\n", ".md")["U2 decorative numbering"], 0)
         self.assertEqual(count_source("<span>01 //</span> Features\n", ".mdx")["U2 decorative numbering"], 1)
 
-    def test_backticked_numbers_in_prose_are_code_not_numbering(self):
-        self.assertEqual(count_source("Run `01` then `02`, in order.\n", ".md")["U2 decorative numbering"], 0)
-        self.assertEqual(count_source("<span>01 //</span> Features\n", ".mdx")["U2 decorative numbering"], 1)
-
     def test_counts_an_eyebrow_split_over_lines(self):
         source = '<p\n  className="text-xs font-medium uppercase\n    tracking-widest text-indigo-500"\n>\n  Features\n</p>\n'
         self.assertEqual(count_source(source, ".tsx")["U1 eyebrow"], 1)
@@ -387,6 +383,106 @@ export const options = {
                 f.write("A — dash and 🚀 emoji\n")
             self.assertEqual(count(folder)["total"], 0)
 
+    def test_arrows_are_found_in_realistic_link_markup(self):
+        source = (
+            '<Link href={`/blog/${slug}`}>Read the post →</Link>\n'
+            '<Link href={{ pathname: "/x", query: { a: 1 } }}>Read the post →</Link>\n'
+            '<Button onClick={() => { setOpen(false) }}>Continue →</Button>\n'
+            '<router-link to="/x">Docs →</router-link>\n'
+            '<RouterLink to="/y">Pricing →</RouterLink>\n'
+            'const labels = { more: "See what\'s new →", go: \'Let\\\'s go →\' };\n'
+        )
+        self.assertEqual(count_source(source, ".tsx")["U21 arrow link"], 6)
+
+    def test_arrows_beside_hidden_text_or_in_running_text_are_left_alone(self):
+        source = (
+            '<Button><span className="sr-only">Next page</span>→</Button>\n'
+            '<Button><span className="visually-hidden">Next</span><span aria-hidden="true">→</span></Button>\n'
+            '<Link href="/x" className="absolute inset-0" />\n<p>Sign in → continue</p>\n'
+            '<p>Click "Save" and wait → "Saved"</p>\n<p>Use ← and →</p>\n'
+        )
+        self.assertEqual(count_source(source, ".tsx")["U21 arrow link"], 0)
+
+    def test_generic_labels_are_found_in_nested_and_framework_markup(self):
+        source = (
+            '<a href="/x"><span>Learn more</span></a>\n<Button><Icon /> Submit</Button>\n'
+            '<RouterLink>Read more</RouterLink>\n<router-link>Click here</router-link>\n<Anchor>here</Anchor>\n'
+        )
+        self.assertEqual(count_source(source, ".tsx")["U23 vague link label"], 5)
+        self.assertEqual(count_source("See [click here](https://x.dev) or [Learn more](/x).\n", ".md")["U23 vague link label"], 2)
+
+    def test_vocabulary_is_found_around_expressions_and_with_spaces_but_not_in_tests(self):
+        source = "<p>Welcome back, {name}. Seamlessly manage your projects.</p>\n<p>A game changer, state of the art and world class.</p>\n"
+        self.assertEqual(count_source(source, ".tsx")["unslop 7 AI vocabulary"], 4)
+        self.assertEqual(count_source('<p>{{ name }} makes a cutting edge tool</p>\n', ".vue").get("unslop 7 AI vocabulary"), 1)
+        with tempfile.TemporaryDirectory() as folder:
+            for name in ("card.test.tsx", "card.spec.ts"):
+                with open(os.path.join(folder, name), "w", encoding="utf-8") as f:
+                    f.write('it("is robust and seamless", () => {});\n')
+            os.mkdir(os.path.join(folder, "tests"))
+            with open(os.path.join(folder, "tests", "test_card.py"), "w", encoding="utf-8") as f:
+                f.write('"""A robust test."""\n')
+            self.assertEqual(count(folder)["unslop 7 AI vocabulary"], 0)
+
+    def test_edge_bars_with_side_colors_variants_and_inline_styles(self):
+        source = (
+            '<div className="border-l-4 border-l-indigo-500">a</div>\n<div className="border-l-4 border-[#6366f1]">b</div>\n'
+            '<div className="border-l-[12px] border-indigo-500">c</div>\n<div className="md:border-l-4 border-primary">d</div>\n'
+            '<div style={{ borderLeft: \'4px solid #6366f1\' }}>e</div>\n.card { border-left: 4px solid var(--accent); }\n'
+        )
+        self.assertEqual(count_source(source, ".tsx", "--surface")["U26 edge accent bar"], 6)
+        legit = (
+            '<div className="border-l-4 border-b">a</div>\n<div className="border-l-4 border-double">b</div>\n'
+            '.a { border-left: 4px solid #e5e7eb; }\n.b { border-left: 4px solid rgba(0, 0, 0, .1); }\n'
+        )
+        self.assertEqual(count_source(legit, ".tsx", "--surface")["U26 edge accent bar"], 0)
+
+    def test_chart_reading_instructions_need_a_chart_word_for_lines_and_rows(self):
+        counts = count_source("Cada línea es un comando.\nCada fila es un pedido.\nEach line is a step.\n", ".md")
+        self.assertEqual(counts["U13 reading instructions"], 0)
+        self.assertEqual(count_source("Cada punto es un cliente.\n", ".md")["U13 reading instructions"], 1)
+
+    def test_off_reads_only_the_leading_ids_and_taste_survives_odd_files(self):
+        source = "<h1>🚀 Hi — there!</h1>\n"
+        with tempfile.TemporaryDirectory() as folder:
+            path = os.path.join(folder, "a.tsx")
+            taste = os.path.join(folder, "taste.md")
+            with open(path, "w", encoding="utf-8") as f:
+                f.write(source)
+            with open(taste, "w", encoding="utf-8") as f:
+                f.write("## Bans\n\n- Exclamation marks\n\n## Off\n\n- U11, we use emoji (unlike U1 headers we keep U9 rules)\n- t1 visa, not a rule id\n")
+            counts = count("--taste", taste, path)
+            self.assertNotIn("U11 emoji", counts)
+            self.assertIn("U1 eyebrow", counts)
+            self.assertIn("U9 badge word", counts)
+            self.assertIn("T1 exclamation mark", counts)
+            with open(taste, "wb") as f:
+                f.write(b"\xef\xbb\xbf## Bans\n\n- Exclamation marks\n\xff\xfe\n")
+            self.assertIn("T1 exclamation mark", count("--taste", taste, path))
+
+    def test_annotations_escape_paths(self):
+        with tempfile.TemporaryDirectory() as folder:
+            name = os.path.join(folder, "a,b:c.html")
+            with open(name, "w", encoding="utf-8") as f:
+                f.write("<p>🚀</p>\n")
+            out = run(COUNTER, "--format", "github", name).stdout
+        self.assertIn("a%2Cb%3Ac.html", out)
+
+    def test_big_single_line_inputs_stay_fast(self):
+        import time
+        inputs = [
+            ('<img src="data:image/png;base64,' + "A" * 200000 + '" />\n', ".tsx"),
+            ('{"k": "' + "x" * 200000 + '"}\n', ".json"),
+            ("<p>" + "word " * 60000 + "\n", ".html"),
+            ("> " + "q" * 50000 + "\n", ".md"),
+            ("[" * 100000 + "\n", ".md"),
+            ("<a " + "x " * 100000 + "\n", ".html"),
+        ]
+        for source, suffix in inputs:
+            started = time.time()
+            count_source(source, suffix, "--surface")
+            self.assertLess(time.time() - started, 5, suffix + " " + source[:20])
+
     def test_max_sets_the_exit_code(self):
         before = os.path.join(ROOT, "examples", "before")
         self.assertEqual(run(COUNTER, "--max", "0", before).returncode, 1)
@@ -546,6 +642,15 @@ class EvalFixturesTest(unittest.TestCase):
             self.assertTrue(os.path.exists(os.path.join(skill, "scripts", "count_tells.py")))
         self.assertEqual(evals_run.DEFAULT_PROMPT, "/unslop-ui-eval .")
 
+    def test_incidents_fail_on_unknown_rules_and_on_unexpected_counts(self):
+        incident = evals_run.load_incidents()[0]
+        typo = {**incident, "counter": {**incident["counter"], "expect": {"U9 badge wrod": 0}}}
+        self.assertTrue(any("not a rule this run counts" in f for f in evals_run.check_incident(typo)))
+        flagless = {**incident, "counter": {"suffix": ".tsx", "source": "<div className=\"border-l-4 border-indigo-500\" />\n", "expect": {"U26 edge accent bar": 0}}}
+        self.assertTrue(any("not a rule this run counts" in f for f in evals_run.check_incident(flagless)))
+        unexpected = {**incident, "counter": {"suffix": ".tsx", "source": "<p>🚀</p>\n", "expect": {}}}
+        self.assertIn("U11 emoji: expected 0, counted 1", evals_run.check_incident(unexpected))
+
     def test_fixtures_that_need_flags_name_them(self):
         self.assertEqual(self.expectations["plan"]["args"], "--plan")
         self.assertEqual(self.expectations["surface-new"]["args"], "--surface")
@@ -639,6 +744,29 @@ class HookTest(unittest.TestCase):
             result = run_hook({"hook_event_name": "PostToolUse", "cwd": self.root, "tool_input": {"file_path": path}})
             self.assertEqual((result.returncode, result.stdout), (0, ""), path)
 
+    def test_a_project_inside_a_folder_named_build_is_still_a_project(self):
+        project = os.path.join(self.root, "build", "dist", "app")
+        path = os.path.join(project, "src", "a.html")
+        os.makedirs(os.path.dirname(path))
+        with open(path, "w", encoding="utf-8") as f:
+            f.write("<p>🚀</p>\n")
+        payload = {"hook_event_name": "PostToolUse", "cwd": project, "tool_input": {"file_path": path}}
+        self.assertIn("U11 emoji x1", run_hook(payload).stdout)
+        nested = os.path.join(project, "node_modules", "x", "b.html")
+        os.makedirs(os.path.dirname(nested))
+        with open(nested, "w", encoding="utf-8") as f:
+            f.write("<p>🚀</p>\n")
+        payload["tool_input"]["file_path"] = nested
+        self.assertEqual(run_hook(payload).stdout, "")
+
+    def test_fails_open_when_the_counter_cannot_be_imported(self):
+        with tempfile.TemporaryDirectory() as folder:
+            lonely = os.path.join(folder, "hook.py")
+            with open(HOOK, encoding="utf-8") as f, open(lonely, "w", encoding="utf-8") as out:
+                out.write(f.read())
+            result = subprocess.run([sys.executable, lonely], input="{}", capture_output=True, text=True)
+        self.assertEqual((result.returncode, result.stdout, result.stderr), (0, "", ""))
+
     def test_fails_open_on_bad_input(self):
         for raw in ("", "not json", "[]", '{"tool_input": null}'):
             result = subprocess.run([sys.executable, HOOK], input=raw, capture_output=True, text=True, cwd=ROOT)
@@ -687,6 +815,13 @@ class ActionTest(unittest.TestCase):
         result, output, summary = self.run_action(path="examples/before examples/after")
         self.assertEqual((result.returncode, output.strip()), (0, "total=35"))
         self.assertIn("(limit: no limit)", summary)
+
+    def test_paths_may_be_split_by_newlines_and_an_empty_list_scans_the_repo(self):
+        result, output, _ = self.run_action(path="examples/after\nexamples/before")
+        self.assertEqual((result.returncode, output.strip()), (0, "total=35"))
+        result, output, _ = self.run_action(path="   ", max="1000000")
+        self.assertEqual(result.returncode, 0)
+        self.assertRegex(output, r"total=\d+")
 
     def test_a_missing_path_fails_without_a_total(self):
         result, output, _ = self.run_action(path="does/not/exist")
@@ -756,8 +891,22 @@ class PluginTest(unittest.TestCase):
                 between(read_text(PLUGIN_SKILL, "SKILL.md"), start, end),
                 start,
             )
-        for name in ("examples.md", "tokens.md", "unslop-fallback.md", "taste-example.md"):
+        for name in ("examples.md", "tokens.md", "unslop-fallback.md", "taste-example.md", "agents-snippet.md"):
             self.assertEqual(read_text(SKILL, "references", name), read_text(PLUGIN_SKILL, "references", name), name)
+
+    def test_the_skill_folder_never_mentions_a_script(self):
+        for folder, _, names in os.walk(PLUGIN_SKILL):
+            for name in names:
+                text = read_text(folder, name)
+                for word in ("count_tells", "hook.py", "load_unslop", "scripts/", ".py"):
+                    self.assertNotIn(word, text, os.path.join(folder, name))
+                self.assertNotRegex(text, r"(?i)\bcounter\b", os.path.join(folder, name))
+
+    def test_front_matter_matches_except_for_tools(self):
+        def front(*parts):
+            lines = read_text(*parts).split("---\n")[1].splitlines()
+            return [l for l in lines if not l.startswith("allowed-tools:")]
+        self.assertEqual(front(SKILL, "SKILL.md"), front(PLUGIN_SKILL, "SKILL.md"))
 
     def test_links_exist(self):
         text = read_text(PLUGIN_SKILL, "SKILL.md")

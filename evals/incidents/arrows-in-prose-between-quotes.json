@@ -3,7 +3,7 @@
   "report": "In a Markdown file, an arrow between two quoted strings was counted as an arrow ending a string, because the closing quote of one string paired with the opening of the next.",
   "rule": {
     "file": "plugins/unslop-ui/skills/unslop-ui/references/finding-tells.md",
-    "phrase": "Skip an icon-only control, a bare glyph with no text before it"
+    "phrase": "In Markdown only `[text →](url)` counts; an arrow in running text is not it."
   },
   "counter": {
     "suffix": ".md",

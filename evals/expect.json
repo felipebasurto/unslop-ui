@@ -3,7 +3,8 @@
     "why": "A screen with nothing to cut comes back byte-identical, including the cases the counter used to flag.",
     "files": {
       "Members.tsx": { "unchanged": true }
-    }
+    },
+    "report_regex": ["(?i)\\bnone\\b|nothing to cut|no tells|left (it|the screen|everything) (alone|untouched)"]
   },
   "real-state": {
     "why": "Decoration goes; a badge, a dot and numbering that reflect real state or real order stay.",

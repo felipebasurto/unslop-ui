@@ -1,5 +1,5 @@
 name: unslop-ui
-description: Count AI tells in interface copy, charts and styles. Annotates the files and can fail the job above a limit.
+description: Count AI tells in interface copy, charts and styles. Annotates the first few tells of each rule and can fail the job above a limit.
 author: Felipe Basurto
 branding:
   icon: scissors

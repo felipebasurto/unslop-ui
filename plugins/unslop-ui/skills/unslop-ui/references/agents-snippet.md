@@ -15,7 +15,7 @@ When you write or edit interface text, charts or screens in this project:
 - Charts: the title names the measure, not the chart type. No reading instructions, no legend where a direct label fits, hairline gridlines.
 - Errors and empty states say what happened and what to do next, without "Oops" or an apology. Every screen that loads, lists or submits handles loading, empty and error.
 - No filler words: "seamless", "robust", "empower", "effortlessly". Never invent a number, a customer count or a testimonial.
-- Before you call a screen done, run `/unslop-ui <path>` on it.
+- When you finish a screen, tell the user they can run `/unslop-ui <path>` on it.
 ```
 
 These rules apply in any language. For visual rules (gradients, off-scale spacing, heavy weights, decorative motion, edge accent bars), run the skill with `--surface`.

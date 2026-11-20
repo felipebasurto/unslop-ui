@@ -9,7 +9,9 @@ args=(--format github)
 [ "${INPUT_SURFACE:-false}" = "true" ] && args+=(--surface)
 [ -n "${INPUT_MAX:-}" ] && args+=(--max "$INPUT_MAX")
 [ -n "${INPUT_TASTE:-}" ] && args+=(--taste "$INPUT_TASTE")
-read -r -a paths <<< "${INPUT_PATH:-.}"
+# Paths are separated by spaces or newlines. An empty list means the whole repo.
+IFS=$' \t\n' read -r -d '' -a paths <<< "${INPUT_PATH:-.}" || true
+[ "${#paths[@]}" -eq 0 ] && paths=(.)
 
 output="$(python3 "$root/skills/unslop-ui/scripts/count_tells.py" "${args[@]}" "${paths[@]}")"
 status=$?

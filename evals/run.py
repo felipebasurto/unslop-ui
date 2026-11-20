@@ -137,8 +137,9 @@ def check_incident(incident):
     case = incident.get("counter")
     if case:
         counts = counter_output(case)
-        for name in sorted(set(counts) | set(case["expect"])):
-            want, got = case["expect"].get(name, 0), counts.get(name, 0)
+        failures += ["{}: not a rule this run counts (typo, or a flag or taste ban is missing)".format(name) for name in sorted(case["expect"]) if name not in counts]
+        for name in sorted(counts):
+            want, got = case["expect"].get(name, 0), counts[name]
             if want != got:
                 failures.append("{}: expected {}, counted {}".format(name, want, got))
     return failures
@@ -178,7 +179,7 @@ def main():
     parser = argparse.ArgumentParser(description="Run /unslop-ui on the fixtures and check the result.")
     parser.add_argument("fixtures", nargs="*", help="fixture names (default: all)")
     parser.add_argument("--agent", default=DEFAULT_AGENT, help="agent command; the prompt is appended (default: %(default)s)")
-    parser.add_argument("--prompt", default=DEFAULT_PROMPT, help="how this agent invokes the skill (default: %(default)s)")
+    parser.add_argument("--prompt", help="how this agent invokes the skill (default: {}, or /unslop-ui . with --no-install-skill)".format(DEFAULT_PROMPT))
     parser.add_argument("--check", metavar="DIR", help="skip the agent and check edited copies in DIR/<fixture>/")
     parser.add_argument("--skill-dest", default=DEFAULT_SKILL_DEST, help="where in each fixture copy to install this checkout's skill (default: %(default)s)")
     parser.add_argument("--no-install-skill", action="store_true", help="do not copy the skill; the agent uses what is installed")
@@ -207,9 +208,10 @@ def main():
         workdir = tempfile.mkdtemp(prefix="unslop-ui-eval-")
         print("Running {!r} on {} fixtures in {}".format(args.agent, len(names), workdir), file=sys.stderr)
         dest = None if args.no_install_skill else args.skill_dest
+        prompt = args.prompt or ("/unslop-ui ." if args.no_install_skill else DEFAULT_PROMPT)
         with concurrent.futures.ThreadPoolExecutor(max_workers=min(len(names), MAX_PARALLEL)) as pool:
             exit_codes = dict(zip(names, pool.map(
-                lambda n: run_agent(args.agent, args.prompt, n, workdir, dest, expectations[n].get("args", "")), names)))
+                lambda n: run_agent(args.agent, prompt, n, workdir, dest, expectations[n].get("args", "")), names)))
 
     failed_any = False
     for name in names:

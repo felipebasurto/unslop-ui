@@ -104,7 +104,7 @@ Add `--surface` and the skill also fixes five visual tells, each with a concrete
 | U18 | Off-scale spacing: `mt-[13px]`, `gap: 7px` | Nearest step of 4, 8, 12, 16, 20, 24, 32, 40, 48, 64 |
 | U19 | `font-extrabold`, `font-black`, weights 800 and 900 | 500 or 600 |
 | U20 | `transition-all`, `hover:scale-*` on cards, `animate-bounce`, a fade-up on every section as it scrolls in (`whileInView`, `data-aos`) | Named properties at 150ms ease-out, scroll-revealed content rendered in place |
-| U26 | A colored 3px or thicker border on one edge of a card (`border-l-4 border-indigo-500`) | 1px border all round, or a neutral tint. A bar on a real alert stays |
+| U26 | A colored 3px or thicker border on the left edge of a card (`border-l-4 border-indigo-500`) | 1px border all round, or a neutral tint. A bar on a real alert stays |
 
 Without the flag these five never run. They replace a value with a better value. They don't change the palette, the type family or the layout. For that, see [Pairs well with](#pairs-well-with). If the project already has tokens (a Tailwind theme, CSS variables), the skill fixes toward those instead.
 
@@ -307,7 +307,7 @@ The path is wherever the skill is installed. Set `UNSLOP_UI_SURFACE=1` to count 
     max: "0"
 ```
 
-It annotates the files with the tells it finds, writes the total to the job summary and fails above `max`. Leave `max` empty to only report. `surface: "true"` adds the surface rules, `taste` points at a taste file, and the `total` output holds the count.
+It annotates the first few tells of each rule, writes the total to the job summary and fails above `max`. Leave `max` empty to only report. `surface: "true"` adds the surface rules, `taste` points at a taste file, and the `total` output holds the count.
 
 ## Install
 
@@ -387,6 +387,7 @@ The counter can only reward deleting, so the behavior of the skill itself has it
 ```bash
 python3 evals/run.py                       # runs `claude -p` on every fixture, then checks
 python3 evals/run.py form claims           # only these
+python3 evals/run.py --agent 'cursor-agent -p --force' --skill-dest .cursor/skills/unslop-ui-eval   # Cursor's agent
 python3 evals/run.py --no-install-skill --agent 'codex exec' --prompt '$unslop-ui .'   # another agent, using its installed skill
 ```
 

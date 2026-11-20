@@ -4,7 +4,7 @@ What this team wants gone from its interface copy. Save it as `.unslop-ui/taste.
 
 ## Bans
 
-Each bullet is one more tell. The first three are also counted by `count_tells.py`, as T1, T2 and T3. The rest are read by the agent.
+Each bullet is one more tell. The first three have a fixed id and a search pattern (T1, T2 and T3). The rest are read by the agent.
 
 - Exclamation marks
 - Uppercase text, not only eyebrows
@@ -22,7 +22,7 @@ Nothing here is cut or rewritten, whatever a rule says. The report lists it unde
 
 ## Off
 
-Rule ids to skip entirely (`U11`, `T1`, `unslop 13`), each with its reason. The counter stops counting them and the agent does not apply them.
+Rule ids to skip entirely (`U11`, `T1`, `unslop 13`), each followed by its reason. A skipped rule is neither counted nor applied. Only the ids at the start of the bullet count, so a reason can mention other rules.
 
 - U11, our product names include emoji
 - unslop 13, the brand writes with dashes

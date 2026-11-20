@@ -275,9 +275,9 @@ Before:
 
 After:
 ```jsx
-<div className="rounded-lg border border-black/10 bg-white p-4">...</div>
+<div className="rounded-lg border border-black/10 bg-white p-4 shadow-sm">...</div>
 <div role="alert" className="border-l-4 border-red-500 bg-red-50 p-4">Payment failed</div>
 ```
 
-The decorative bar becomes a hairline border all round (U26) and the shadow goes with it (U17). The bar on the alert marks a real status and stays.
+The decorative bar becomes a hairline border all round (U26). The neutral `shadow-sm` is not a tell and stays. The bar on the alert marks a real status and stays.
 

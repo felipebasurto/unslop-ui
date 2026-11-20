@@ -14,7 +14,7 @@ Target: $ARGUMENTS
 
 If the target above is empty or still shows a placeholder, take it from the user's message. With none there either, use the files changed in this conversation, or ask.
 
-Scope: copy, decoration, charts, links and states by default (U1 to U16, U21 to U25). If the arguments include `--surface`, also apply U17 to U20 and U26 (gradients and glows, off-scale spacing, heavy weights, motion, edge accent bars), using the values in [references/tokens.md](references/tokens.md). If they include `--plan`, change nothing: work through the procedure up to the verdict, show the plan and wait for the owner. Strip `--surface` and `--plan` from the target before reading paths.
+Scope: copy, decoration, charts, links and states by default (U1 to U16 and U21 to U23, plus U24 and U25, which are report only). If the arguments include `--surface`, also apply U17 to U20 and U26 (gradients and glows, off-scale spacing, heavy weights, motion, edge accent bars), using the values in [references/tokens.md](references/tokens.md). If they include `--plan`, change nothing: work through the procedure up to the verdict, show the plan and wait for the owner. Strip `--surface` and `--plan` from the target before reading paths.
 
 The rules apply in any language: judge Spanish, French or German copy by the same tests. The counter's patterns cover English and Spanish.
 
@@ -33,11 +33,11 @@ Where these and the UI rules disagree, the UI rules win:
 
 ## Cut first, write little
 
-Deleting is the default fix. Where a rule says rewrite (U3, U8, U12), the new text may state only what the source already shows: the product's own copy, the names of its features, the data bound to the screen. Never add a number, a speed, an integration or a benefit you cannot point to in the code. With nothing true to say, delete the string, or leave it and list it as a task.
+Deleting is the default fix. Where a rule says rewrite (U3, U4, U8, U12, U22, U23), the new text may state only what the source already shows: the product's own copy, the names of its features, the data bound to the screen. Never add a number, a speed, an integration or a benefit you cannot point to in the code. With nothing true to say, delete the string, or leave it and list it as a task.
 
 ## UI rules
 
-Ids are stable. Cite them as U1 to U20 in the report.
+Ids are stable. Cite them as U1 to U26 in the report.
 
 ### Interface copy
 
@@ -70,7 +70,7 @@ The test for real state, in U6, U9 and U10: the element renders from a condition
 
 ### Links, actions and states
 
-- **U21. Arrow on links and buttons.** A `→` glyph or an arrow icon after the text of a link or button ("Learn more →", "Get started" followed by `<ArrowRight />`). Delete it: the text already says where it goes, and a screen reader reads the glyph aloud. An arrow stays when it carries meaning: `↗` on a link that leaves the site, an icon-only Next or Previous button with an `aria-label`, a breadcrumb or step separator.
+- **U21. Arrow on links and buttons.** A `→` glyph or an arrow icon after the text of a link or button ("Learn more →", "Get started" followed by `<ArrowRight />`). Delete it: the text already says where it goes, and a screen reader reads the glyph aloud. An arrow stays when it carries meaning: `↗` on a link that leaves the site, an icon-only Next or Previous button with an `aria-label` (also when the only text beside it is screen-reader-only), a breadcrumb or step separator.
 - **U22. One action, one name.** The same action called different things in different places ("Get started", "Start now", "Begin"), or a button whose result uses another verb ("Publish", then a toast that says "Saved"). Use the name the product already uses most, everywhere. Rename only labels in the files you are editing. Names that live elsewhere go in the report as a task.
 - **U23. Generic link and button names.** "Click here", "Learn more", "Read more", "Submit": a name that says nothing about where it goes or what it does, which a screen reader lists with no context. Name the destination or the result ("Read the pricing guide", "Save API key"), using only what the code shows: the `href`, the page it opens, the form's purpose. With nothing to go on, leave it and list it as a task. One "Learn more" right after its own paragraph is borderline. The same label twice on a page is the tell.
 - **U24. Equal stat cards.** A row of identical cards that each hold a big number and a small label, so every figure is equally loud. Report only: name the figure the screen exists to show, and leave the layout to the owner.
@@ -84,7 +84,7 @@ Each rule pairs the tell with its fix. Read [references/tokens.md](references/to
 - **U18. Off-scale spacing.** One-off values such as `mt-[13px]`, `py-[11px]`, `gap: 7px`. Fix: the nearest step of 4, 8, 12, 16, 20, 24, 32, 40, 48, 64. Inside a control, 2, 6, 10 and 14 are also steps. Siblings that do the same job (rows of one list, cards of one row) get the same value. Keep an odd value that exactly centers something.
 - **U19. Extra-heavy weights.** `font-extrabold`, `font-black`, `font-weight: 800` or `900`. Fix: 500 or 600, and let size and color carry the hierarchy.
 - **U20. Decorative motion.** `transition-all`, `hover:scale-*` on cards, `animate-bounce`, springs and overshoot on simple UI, and a fade or slide entrance on every section as it scrolls into view (`whileInView`, `data-aos`). Fix: transition named properties (`transition-colors`) at 150ms ease-out, keep a press scale of 0.97 to 0.98 if the control has one, and render scroll-revealed content in place. Motion that answers something the user did stays. Pulsing dots are U10.
-- **U26. Edge accent bar.** A colored border of 3px or more on one edge of a card, quote or list item (`border-l-4 border-indigo-500`, `border-left: 4px solid`). Fix: a 1px border all round, or a neutral tint on the selected item. A bar on a real status stays: an alert with `role="alert"`, an error or warning callout.
+- **U26. Edge accent bar.** A colored border of 3px or more on the left edge of a card, quote or list item (`border-l-4 border-indigo-500`, `border-left: 4px solid`). Fix: a 1px border all round, or a neutral tint on the selected item. A bar on a real status stays: an alert with `role="alert"`, an error or warning callout.
 
 U17 to U20 and U26 never change the palette, the type family, the type sizes, the radii, the layout structure or the order of sections. They replace a value with a better value, they don't redesign.
 
@@ -108,7 +108,7 @@ For before/after pairs, read [references/examples.md](references/examples.md) wh
 
 If `.unslop-ui/taste.md` exists in the project, read it before step 1. It is the owner's list of what they want gone, and it wins over your own judgment of what is a tell.
 
-- **Bans.** Each bullet under `## Bans` is one more tell, fixed with the same rule as the UI rules: delete first, rewrite only from what the source shows. Three have a counter rule and a fixed id: exclamation marks (**T1**), uppercase text anywhere, not only eyebrows (**T2**) and middle dots or bullets that stand alone (**T3**, a chain is U6). Any other bullet you find by reading and number T4, T5 in order. Emoji, em dashes and gradients already have U11, unslop 13 and U17, so a ban on them needs no new id.
+- **Bans.** Each bullet under `## Bans` is one more tell, fixed with the same rule as the UI rules: delete first, rewrite only from what the source shows. Three have a search pattern and a fixed id: exclamation marks (**T1**), uppercase text anywhere, not only eyebrows (**T2**) and middle dots or bullets that stand alone (**T3**, a chain is U6). Any other bullet you find by reading and number T4, T5 in order. Emoji, em dashes and gradients already have U11, unslop 13 and U17, so a ban on them needs no new id.
 - **Keep.** Each bullet under `## Keep` names something never to cut or rewrite, such as a badge, a brand name or legal text. List it under "Kept on purpose" when it would have been a hit.
 - **Off.** Each bullet under `## Off` names a rule id (`U11`, `unslop 13`, `T1`) to skip entirely, with the reason after it. Do not apply or report that rule; mention the ids once at the top of the report as "Off by taste file".
 
@@ -120,7 +120,7 @@ Copy this checklist and track it:
 
 ```
 - [ ] 1. Count: python3 ${CLAUDE_SKILL_DIR}/scripts/count_tells.py [--surface] <target>   (${CLAUDE_SKILL_DIR} is this file's folder; run it from the project root so it finds .unslop-ui/taste.md)
-- [ ] 2. Read every visible string and decorative element; tag each problem with U1-U20, a T number from the taste file, or an unslop rule number
+- [ ] 2. Read every visible string and decorative element; tag each problem with U1-U26, a T number from the taste file, or an unslop rule number
 - [ ] 3. Verdict: heavy, light or none
 - [ ] 4. Edit (with --plan: show the plan and stop; edit only after the owner says go)
 - [ ] 5. Count again with the same command
@@ -132,7 +132,7 @@ Copy this checklist and track it:
 
 **Verdict**, from the count and your reading:
 
-- **Heavy.** Tells in most of the rules, or the same tell repeated across the screen. Work through every rule.
+- **Heavy.** Tells in most of the rules, or the same tell repeated across the screen. Work through every rule that applies, with U24 and U25 as report only.
 - **Light.** A few tells. Fix only those. Leave everything else exactly as it is.
 - **None.** The counter finds nothing, or only legitimate cases, and reading finds nothing that earns a cut. Say so, edit nothing, and name at most two optional refinements. A clean screen is a result, not a failure.
 
@@ -149,7 +149,7 @@ If you can render the screen (a dev server is running, or you have browser tools
 
 **Plan (only with `--plan`).** Stop after the verdict and change nothing. Show the table with the Before column only, then one line per planned change (`file:line  U1  delete "INTRODUCING LEDGER"`), each rewrite as old → new, what you would keep on purpose and the tasks. End with one question: apply this plan, or change it? Edit only after the owner answers, and apply the plan exactly as they amended it.
 
-**Report.** The table, then up to three lists, and nothing else. Rows for rules the counter covers use its numbers, the others use your own count from step 2. Kept is how many of the After hits you left on purpose.
+**Report.** The table, then up to three lists, and nothing else. When a taste file switches rules off, one line goes above the table: `Off by taste file: U11, unslop 13`. Rows for rules the counter covers use its numbers, the others use your own count from step 2. Kept is how many of the After hits you left on purpose.
 
 | Rule | Before | After | Kept |
 |---|---|---|---|
