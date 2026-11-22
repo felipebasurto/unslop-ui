@@ -33,7 +33,7 @@ KINDS = {
     "python": {".py"},
 }
 KIND_OF = {ext: kind for kind, exts in KINDS.items() for ext in exts}
-SKIP_DIRS = {"node_modules", ".git", ".unslop-ui", ".claude", ".cursor", ".agents", ".codex", "dist", "build", ".next", ".svelte-kit", ".astro", "coverage", ".venv", "venv", "__pycache__"}
+SKIP_DIRS = {"node_modules", ".git", ".unslop-ui", ".claude", ".cursor", ".agents", ".codex", ".devin", ".windsurf", "dist", "build", ".next", ".svelte-kit", ".astro", "coverage", ".venv", "venv", "__pycache__"}
 SKIP_FILES = {"package-lock.json", "package.json"}
 # Minified bundles and data dumps are not hand-written interface code.
 MAX_BYTES = 1_000_000
