@@ -483,19 +483,32 @@ def edge_bars(text):
 # U18: odd pixel values, and anything over 16 that is not a multiple of 4.
 # 2, 6, 10 and 14 are Tailwind's half steps (0.5, 1.5, 2.5, 3.5).
 SPACING = re.compile(
-    r"(?<![\w-])-?(?:[mp][trblxyse]?|gap(?:-[xy])?|space-[xy])-\[(\d+)px\]"
-    r"|\b(?:margin|padding)(?:-(?:top|right|bottom|left))?\s*:\s*(\d+)px\s*(?:[;}\"']|$)"
-    r"|\bgap\s*:\s*(\d+)px",
+    r"(?<![\w-])-?(?:[mp][trblxyse]?|gap(?:-[xy])?|space-[xy])-\[(-?\d+(?:\.\d+)?)px\]"
+)
+# A shorthand declaration carries several values ("padding: 8px 18px");
+# every px in it is checked, where a first-value-only pattern saw none.
+SPACING_DECL = re.compile(
+    r"\b(?:margin|padding)(?:-(?:top|right|bottom|left))?\s*:\s*([^;}\n]+)"
+    r"|\bgap\s*:\s*([^;}\n]+)",
     re.M,
 )
+PX_VALUE = re.compile(r"-?\d+(?:\.\d+)?px")
+
+
+def off_scale_value(value):
+    return bool(value % 2 or (value > 16 and value % 4))
 
 
 def off_scale(text):
     hits = []
     for m in SPACING.finditer(text):
-        value = int(next(g for g in m.groups() if g))
-        if value % 2 or (value > 16 and value % 4):
+        if off_scale_value(float(m.group(1))):
             hits.append(m.start())
+    for m in SPACING_DECL.finditer(text):
+        values = m.group(1) if m.group(1) is not None else m.group(2)
+        for v in PX_VALUE.finditer(values):
+            if off_scale_value(float(v.group(0)[:-2])):
+                hits.append(m.start())
     return hits
 
 

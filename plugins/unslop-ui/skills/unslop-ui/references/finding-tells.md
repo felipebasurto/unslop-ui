@@ -29,7 +29,7 @@ Count a hit once per element or string, not once per match.
 ## Surface (only with `--surface`)
 
 - **U17 gradient or glow.** `bg-(gradient|linear|radial|conic)-to?-`, `(linear|radial|conic)-gradient\(`, `bg-clip-text`, `background-clip:\s*text`, `blur-(2xl|3xl)`, `shadow-\[0_0_`, `shadow-[a-z]+-\d{2,3}`, `box-shadow:[^;]*\b0\s+0\s+\d+px`
-- **U18 off-scale spacing.** `-?(m|p)[trblxyse]?-\[\d+px\]`, `(gap|space)(-[xy])?-\[\d+px\]`, `(margin|padding)[a-z-]*:\s*\d+px`, `gap:\s*\d+px`; a hit counts when the value is odd, or above 16 and not a multiple of 4
+- **U18 off-scale spacing.** `-?(m|p)[trblxyse]?-\[-?\d+(\.\d+)?px\]`, `(gap|space)(-[xy])?-\[-?\d+(\.\d+)?px\]`, and every `px` value inside a `(margin|padding)[a-z-]*\s*:` or `gap\s*:` declaration, shorthand included (`padding: 8px 18px` checks both); a hit counts when the value is odd, or above 16 and not a multiple of 4
 - **U19 heavy weight.** `font-(extrabold|black)`, `font-?[wW]eight\W{0,3}[89]00`, `font-\[[89]00\]`
 - **U20 motion.** `transition-all`, `transition:\s*all`, `hover:scale-`, `animate-bounce`, `whileInView`, `data-aos`
 - **U26 edge accent bar.** `border-[ls]-(4|8|\[[3-9]px\])` in a class string that also has a colored `border-<color>` (not gray, slate, zinc, neutral, stone, border or transparent), and `border-(left|inline-start):\s*([3-9]|\d\d)px\s+solid\s+(?!transparent)`. Skip 1px and 2px rules, a gray bar and a border on every edge. Keep a bar on a real status (`role="alert"`).
