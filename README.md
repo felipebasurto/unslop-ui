@@ -47,6 +47,7 @@ If a user sent you this repo, read [`skills/unslop-ui/SKILL.md`](https://raw.git
 | U21 | Arrows on links and buttons | `Learn more →` |
 | U22 | Generic link and button names | "Click here", "Learn more", "Submit" |
 | U23 | Equal stat cards (report only) | Three identical cards, a big number in each. It comes back as a task, the layout is yours |
+| U24 | Thick colored stripe on any edge of a card or panel, for emphasis | Delete it, or 1px border all round / neutral tint / 1px neutral bar. A stripe that encodes real state stays |
 
 With the visual surface (`--surface`):
 
@@ -56,7 +57,7 @@ With the visual surface (`--surface`):
 | U18 | Off-scale spacing: `mt-[13px]`, `gap: 7px` | Nearest step of 4, 8, 12, 16, 20, 24, 32, 40, 48, 64 |
 | U19 | `font-extrabold`, `font-black` | 500 or 600 |
 | U20 | `transition-all`, `hover:scale-*` on cards, fade-up on scroll, numbers that count up on load | Named properties at 150ms, content and numbers shown in place |
-| U24 | A colored bar on the left edge of a card | 1px border all round. A bar on a real alert stays |
+| U25 | Edges that don't agree: labels, icons, trailing items and toolbar items on different lines | Move the minority onto the line most items already sit on, in the container's padding or a shared inset. Never a one-off margin |
 
 Every string it keeps also goes through the writing rules of unslop by Lauren Tan: no em dashes, no AI vocabulary, no bold lead-ins that repeat their line, no abstract jargon, no forced rule of three.
 
@@ -146,8 +147,10 @@ When you write or edit interface text, charts or screens in this project:
 - A heading says what the section is. No eyebrow label above it, no `01 //` numbering unless the order is real, no subtitle that repeats the heading, and no boilerplate footnote under a CTA or form ("No credit card required", "No spam").
 - Never describe what is already visible: no "Click the button below", "This chart shows", "(updates in real time)".
 - Badges, status dots and "Live" labels render from real state, or they are not there.
+- No colored stripe on one edge of a card or panel for emphasis. A stripe that marks a real state stays.
 - No decorative emoji, and no icon in a tinted square beside every item.
 - Links and buttons: no `→` or arrow icon after the text, and no "Click here", "Learn more" or "Submit". Name the destination or the result.
+- Edges line up: one text line per row of items, icons on one column, trailing items on one edge. Fix the container's padding, not a single item.
 - Charts and KPIs: the title names the measure, not the chart type. No reading instructions, no legend where a direct label fits, hairline gridlines, and at most one line of context on a KPI card.
 - Errors and empty states say what happened and what to do next, without "Oops" or an apology.
 - No filler words: "seamless", "robust", "empower", "effortlessly". No em dashes: end the sentence or use a comma. Never invent a number, a customer count or a testimonial.
@@ -169,7 +172,7 @@ Found a bad cut or a missed tell? Open a [false positive](https://github.com/fel
 
 ## Credits
 
-The writing rules are by [Lauren Tan](https://github.com/poteto), from the unslop skill in [pstack](https://github.com/cursor/plugins/tree/main/pstack) (MIT). U14 to U16 follow Edward Tufte's data-ink and chartjunk principles. The motion checks in U20 borrow from [remove-animations](https://github.com/emilkowalski/skills) by Emil Kowalski. The surface rules and the verdict step came from user feedback after comparing this skill with [unslop](https://github.com/heydamir/unslop) by Damir Sokolovsky.
+The writing rules are by [Lauren Tan](https://github.com/poteto), from the unslop skill in [pstack](https://github.com/cursor/plugins/tree/main/pstack) (MIT). U14 to U16 follow Edward Tufte's data-ink and chartjunk principles. The motion checks in U20 borrow from [remove-animations](https://github.com/emilkowalski/skills) by Emil Kowalski. The surface rules and the verdict step came from user feedback after comparing this skill with [unslop](https://github.com/heydamir/unslop) by Damir Sokolovsky. U25 adapts the edge, column and optical-centering rules from [gridlines](https://github.com/pritamux/gridlines) by pritamux (MIT), which distills Karri Saarinen's Linear sidebar notes and Apple's HIG layout guidance. The accent-stripe tell in U24 is the one catalogued across AI-slop references such as [Layr](https://layr.design/reference/layr-001-intentionality/visual-slop), [impeccable](https://impeccable.style) and [paralect](https://www.paralect.com/blog/signs-of-ai-slop-in-design).
 
 ## License
 

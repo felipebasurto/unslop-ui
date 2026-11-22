@@ -1,9 +1,9 @@
 ---
 name: unslop-ui
-description: "Strip AI-generated UI copy, decorative chrome (eyebrows, 01/02/03 numbering, badges, dots, arrows) and chart clutter (titles, legends, gridlines) from web pages, apps, dashboards and charts. Use when asked to clean up, tighten, polish, declutter, unslop or humanize interface copy, cut filler or em dashes, when a screen looks AI-made or generic, or as a final pass once you finish building or restyling a screen. Not for the build itself: layout redesigns, new features, chart-type or data changes, logic refactors, or non-UI prose (docs, emails, blog posts)."
+description: "Strip AI-generated UI copy, decorative chrome (eyebrows, 01/02/03 numbering, badges, dots, arrows, edge stripes) and chart clutter (titles, legends, gridlines) from web pages, apps, dashboards and charts. Use when asked to clean up, tighten, polish, declutter, unslop or humanize interface copy and visual surface (gradients, spacing, motion, edge alignment), cut filler or em dashes, when a screen looks AI-made or generic, or as a final pass once you finish building or restyling a screen. Not for the build itself: layout redesigns, new features, chart-type or data changes, logic refactors, or non-UI prose (docs, emails, blog posts)."
 license: MIT
 metadata:
-  version: "1.0.0"
+  version: "1.0.1"
 ---
 
 # Unslop UI
@@ -12,9 +12,9 @@ Edit the visible text and decorative chrome of a web page, app screen, chart or 
 
 Target: the file, folder or component the user named. With none, use the files changed in this conversation, or ask.
 
-Scope: copy, decoration, charts and links (U1 to U16 and U21 to U23, with U23 as report only). Two options, given as flags or in plain words (you can combine both):
+Scope: copy, decoration, charts and links (U1 to U16 and U21 to U24, with U23 as report only). Two options, given as flags or in plain words (you can combine both):
 
-- **Surface.** With `--surface`, or when the user asks for visual cleanup too, also apply U17 to U20 and U24 (gradients and glows, off-scale spacing, heavy weights, motion, edge accent bars). Read [references/surface.md](references/surface.md) for them.
+- **Surface.** With `--surface`, or when the user asks for visual cleanup too, also apply U17 to U20 and U25 (gradients and glows, off-scale spacing, heavy weights, motion, edge alignment). Read [references/surface.md](references/surface.md) for them.
 - **Plan.** With `--plan`, or when the user wants to see the changes first, change nothing: work up to the verdict, show the plan and wait.
 
 If `.unslop-ui/taste.md` exists in the project, read [references/taste.md](references/taste.md) and apply the file before anything else: it is the owner's list of bans, keeps and rules switched off.
@@ -27,7 +27,7 @@ Deleting is the default fix. Where a rule says rewrite (U3, U4, U8, U12, U22), t
 
 ## UI rules
 
-Cite them as U1 to U24 in the report.
+Cite them as U1 to U25 in the report.
 
 ### Interface copy
 
@@ -49,6 +49,7 @@ The test for real state, in U6, U9 and U10: the element renders from a condition
 - **U9. Badges and pills without real state.** "LIVE", "NEW", "AI", "Beta", "Pro", "🔥 Popular" added for flavor. Keep a badge only if it reflects data the app actually tracks (a real stream is live, an item is actually new since the last visit).
 - **U10. Status dots.** Pulsing or colored dots (`animate-pulse`, small `rounded-full` dots) next to text. Keep only if bound to a real live status. A loading skeleton that pulses is not a status dot.
 - **U11. Decorative emojis and icons.** In headings, buttons, KPI labels and feature lists, including the icon in a tinted square above each feature card. Delete. An icon stays if it is the control itself (icon button with an accessible name: `aria-label` or `sr-only` text), if it carries meaning the text does not, or if it sits in a toolbar or in a menu of actions (edit, copy, delete) where every item has one. A menu of destinations whose icons are generic pictographs (a mountain for Svalbard, a compass for Greenland) is decoration. An icon in a tinted, rounded box goes with its box.
+- **U24. Edge accent stripe.** A thick colored bar on the edge of a card, panel, quote, list item or row, for emphasis: `border-l-4`, `border-t-[3px]` or `border-r-4` in a non-neutral color while the other sides are hairline or none; a colored `::before` or `::after` strip, or an absolute-positioned div, pinned to the edge; an inset shadow stripe (`shadow-[inset_4px_0_0_...]`); stripes on several edges at once. It is the most recognised AI tell: the stripe looks semantic, so readers hunt for what the color means, and it encodes nothing; its straight edge also fights the rounded corners. Delete it — the strip element, its wrapper, the unused color class — or give the container a 1px border all round, a neutral tint, or a 1px neutral bar on list items. A stripe that encodes real state stays: an alert with `role="alert"`, an error or warning callout, or the product's established way to mark a state (check sibling components before cutting one).
 
 ### Charts and dashboards
 
@@ -96,7 +97,7 @@ For before/after pairs, read [references/examples.md](references/examples.md) wh
 
 ## Guardrails
 
-- Change visible text and decorative elements only. Do not touch logic, data, colors, spacing or layout structure. The exceptions are chart scaffolding under U15, and the surface rules when asked. U23 is report only.
+- Change visible text and decorative elements only. Do not touch logic, data, colors, spacing or layout structure. The exceptions are chart scaffolding under U15, the edge stripe under U24, and the surface rules when asked. U23 is report only.
 - Never change a screen that has nothing to cut. See the verdict below.
 - Never edit installed skills or agent config (`.claude/`, `.cursor/`, `.agents/`, `.codex/` and the like).
 - When you delete an element, delete what existed only for it: its now-empty wrapper, a wrapper left holding a single child it only grouped, the margin or gap, the unused import, variable or CSS rule.
@@ -122,6 +123,7 @@ For before/after pairs, read [references/examples.md](references/examples.md) wh
    - Every fact in a string you wrote is in the source, and headings, card titles and short captions fit the length limit.
    - No deletion was tied to real state or a real order. Put it back if so. No empty wrapper, lone child, leftover margin or unused import.
    - Every input still has its visible label, and every icon button still has a name.
+   - Edges that should agree do (U25): every fix went on the container's padding or a shared variable, never on one item.
    - Read each string you wrote or kept out loud. Where you stumble, shorten it. Where it says nothing new, cut it.
    - Nothing outside the scope changed.
 

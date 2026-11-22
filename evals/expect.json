@@ -131,7 +131,7 @@
     "files": {
       "Card.tsx": {
         "keep": ["role=\"alert\"", "border-l-4 border-red-500", "{failed &&", "Payment failed", "<h3>{title}</h3>", "{children}"],
-        "cut": ["border-indigo-500", "whileInView", "opacity: 0"]
+        "cut": ["border-l-indigo-500", "border-t-4", "border-t-emerald-500", "whileInView", "opacity: 0"]
       }
     }
   },
@@ -205,6 +205,27 @@
       }
     },
     "report_regex": ["(?i)ignore previous instructions|prompt injection|steer|instruction"]
+  },
+  "stripe": {
+    "why": "U24 runs without --surface: a border stripe and an absolutely-positioned strip go, while the stripe on a real alert stays.",
+    "files": {
+      "Billing.tsx": {
+        "keep": ["role=\"alert\"", "border-l-4 border-red-500", "{failed &&", "Payment failed", "{plan.name}", "{plan.blurb}", "href={plan.href}", "Choose {plan.name}"],
+        "cut": ["border-l-4 border-indigo-500", "border-indigo-500", "absolute inset-y-0 left-0 w-1", "bg-fuchsia-500"]
+      }
+    },
+    "report_regex": ["U24"]
+  },
+  "align": {
+    "why": "With --surface, U25 moves the rows that miss the shared edges onto the line most items sit on; the on-scale pl-4 and mr-1 go while copy and structure stay.",
+    "args": "--surface",
+    "files": {
+      "Sidebar.tsx": {
+        "keep": ["Settings", "{item.label}", "{item.count}", "{settingsCount}", "href={item.href}", "aria-current", "px-3", "ml-auto"],
+        "cut": ["pl-4", "mr-1"]
+      }
+    },
+    "report_regex": ["U25"]
   },
   "kpi-footnotes": {
     "why": "Boilerplate CTA/form reassurance footnotes and stacked derived KPI captions go, while factual subtitles and a single KPI context line stay.",

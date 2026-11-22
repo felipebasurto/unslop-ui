@@ -72,6 +72,22 @@
     }
   },
   {
+    "id": "stripe-on-cards",
+    "query": "The cards in src/components/Plans.tsx all have those colored bars on the edge. Get rid of them.",
+    "should_trigger": true,
+    "files": {
+      "src/components/Plans.tsx": "export function Plans({ plans }) {\n  return <div>{plans.map((p) => <article key={p.id} className=\"rounded-xl border-l-4 border-indigo-500 p-5\"><h3>{p.name}</h3></article>)}</div>;\n}\n"
+    }
+  },
+  {
+    "id": "align-sidebar-edges",
+    "query": "The sidebar in src/components/Sidebar.tsx looks off — the icons, labels and counts don't share the same edges. Can you align everything?",
+    "should_trigger": true,
+    "files": {
+      "src/components/Sidebar.tsx": "export function Sidebar({ items }) {\n  return <nav className=\"flex w-60 flex-col gap-1 p-2\">{items.map((i) => <a key={i.id} href={i.href} className=\"flex items-center gap-2 rounded-md px-3 py-1.5 text-sm\"><i.icon className=\"size-4\" /><span>{i.label}</span></a>)}</nav>;\n}\n"
+    }
+  },
+  {
     "id": "near-miss-blog-post",
     "query": "Rewrite this blog post in content/posts/launch.md so it stops sounding AI-generated and has no em dashes.",
     "should_trigger": false,

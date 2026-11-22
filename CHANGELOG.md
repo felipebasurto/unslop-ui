@@ -2,6 +2,12 @@
 
 Versions follow [semantic versioning](https://semver.org). Rule ids keep their meaning and are never reused. Older releases are on the [releases page](https://github.com/felipebasurto/unslop-ui/releases).
 
+## 1.0.1
+
+- **U24** graduated from `--surface` to every run: the edge accent stripe is now cut by default, not only on request. It covers a thick colored bar on any edge of a card, panel, quote, list item or row — border stripes, `::before`/`::after` strips, absolute-positioned bars and inset shadow stripes, on one edge or several. A stripe that encodes real state still stays.
+- **U25** (surface) edges that don't agree: labels, icons, trailing items and toolbar items on different lines. The minority moves onto the line most items sit on, fixed in the container's padding or a shared inset, never a one-off margin. Adapted from [gridlines](https://github.com/pritamux/gridlines) by pritamux (MIT).
+- The description now mentions the visual surface and edge stripes, so requests about spacing, gradients, motion, edge alignment or accent stripes can trigger the skill.
+
 ## 1.0.0
 
 One skill, instructions only. Paste the repo link to any agent and it works: nothing to install, nothing to run.
