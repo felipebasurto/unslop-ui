@@ -14,7 +14,7 @@ When you write or edit interface text, charts or screens in this project:
 - Links and buttons: no `→` or arrow icon after the text, and no "Click here", "Learn more" or "Submit". Name the destination or the result, and give one action one name everywhere.
 - Charts: the title names the measure, not the chart type. No reading instructions, no legend where a direct label fits, hairline gridlines.
 - Errors and empty states say what happened and what to do next, without "Oops" or an apology. Every screen that loads, lists or submits handles loading, empty and error.
-- No filler words: "seamless", "robust", "empower", "effortlessly". Never invent a number, a customer count or a testimonial.
+- No filler words: "seamless", "robust", "empower", "effortlessly". No em dashes: end the sentence or use a comma. Never invent a number, a customer count or a testimonial.
 - When you finish a screen, tell the user they can run `/unslop-ui <path>` on it.
 ```
 
