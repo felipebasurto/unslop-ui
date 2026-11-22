@@ -606,7 +606,11 @@ def count(targets, surface=False, bans=(), off=()):
             rules = rules + TASTE_RULES[key]
     rules = [rule for rule in rules if rule_id(rule[0]) not in off]
     results = {name: {"count": 0, "examples": []} for name, _, _ in rules}
+    self_path = os.path.abspath(__file__)
     for path in iter_files(targets):
+        # The counter's own patterns are slop-shaped text; never count itself.
+        if os.path.abspath(path) == self_path:
+            continue
         # A file named on the command line is scanned whatever its extension.
         kind = KIND_OF.get(os.path.splitext(path)[1].lower(), "markup")
         try:
