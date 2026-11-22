@@ -90,6 +90,8 @@ U17 to U20 and U26 never change the palette, the type family, the type sizes, th
 
 For before/after pairs, read [references/examples.md](references/examples.md) when unsure how far to cut.
 
+To keep tells out while a screen is being written instead of cleaning up after, point the user to [references/agents-snippet.md](references/agents-snippet.md): a short block for `AGENTS.md` that removes most structural tells in one pass.
+
 ## Guardrails
 
 - Change visible text and decorative elements only. Do not touch logic, data, colors, spacing tokens or layout structure. The exceptions are chart scaffolding under U15, which may be thinned or lightened, and U17 to U20 and U26 when `--surface` is on.
