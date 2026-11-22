@@ -12,9 +12,9 @@
 - Form field (U7)
 - Empty state (U4)
 - Claim you cannot verify
-- Arrows and generic link names (U21, U22, U23)
-- Report-only rules (U24, U25)
-- Edge accent bar (U26)
+- Arrows and generic link names (U21, U22)
+- Equal stat cards (U23)
+- Edge accent bar (U24)
 
 ## Hero with eyebrow (U1, U3, U8)
 
@@ -87,7 +87,7 @@ After, when nothing in the app tracks a live connection:
 <p className="text-xs">3 agents</p>
 ```
 
-If the dot is bound to a real websocket state, keep the dot with an `aria-label` and drop the word "Live".
+If the dot is bound to a real websocket state, keep the dot with `role="status"` and an `aria-label` (or `sr-only` text), and drop the word "Live".
 
 ## Badge with and without state (U9)
 
@@ -119,7 +119,9 @@ After:
 </Tile>
 ```
 
-"vs last month" is the one fact from the deleted sentence that the tile did not already show.
+"vs last month" is the one fact from the deleted sentence that the tile did not already show. The same cap applies to stacked KPI captions: `1,482 / 1,501` does not also need `"98.7% matched"` and `"19 remaining"` underneath it.
+
+Under a hero button or form, boilerplate reassurance footnotes ("No credit card required", "Cancel anytime", "No spam, unsubscribe anytime") go under U3, while a concrete subtitle that adds facts the heading lacks stays.
 
 ## Chart header (U12, U13)
 
@@ -215,14 +217,12 @@ Leave both as they are. Whether they are true is not in the code, and deleting r
 - [ ] landing.html:32  testimonial from Sarah Chen: confirm it is a real customer quote or remove
 ```
 
-## Arrows and generic link names (U21, U22, U23)
+## Arrows and generic link names (U21, U22)
 
 Before:
 ```jsx
 <a href="/pricing">Learn more →</a>
 <Button>Get started <ArrowRight className="size-4" /></Button>
-<a href="/signup">Start now</a>
-<a href="/signup">Begin</a>
 <a href="/docs/api">Click here</a>
 <button aria-label="Next slide"><ArrowRight /></button>
 <a href="https://status.example.com">Status ↗</a>
@@ -232,40 +232,32 @@ After:
 ```jsx
 <a href="/pricing">Pricing</a>
 <Button>Get started</Button>
-<a href="/signup">Get started</a>
-<a href="/signup">Get started</a>
 <a href="/docs/api">API docs</a>
 <button aria-label="Next slide"><ArrowRight /></button>
 <a href="https://status.example.com">Status ↗</a>
 ```
 
-The arrows after text go (U21). The Next button is the icon alone and stays, and so does the `↗` that says the link leaves the site. Three names for the signup link become the one the page uses most (U22). "Learn more" and "Click here" take their names from the `href` (U23), because the destination is in the code. "Submit" on a form whose purpose the code does not show would stay and become a task.
+The arrows after text go (U21). The Next button is the icon alone and stays, and so does the `↗` that says the link leaves the site. "Learn more" and "Click here" take their names from the `href` (U22), because the destination is in the code. "Submit" on a form whose purpose the code does not show would stay and become a task.
 
-## Report-only rules (U24, U25)
+## Equal stat cards (U23)
 
 Before:
 ```jsx
 <div className="grid grid-cols-3 gap-4">
-  <Card><p className="text-3xl">1,204</p><p>Users</p></Card>
-  <Card><p className="text-3xl">$8.1k</p><p>Revenue</p></Card>
-  <Card><p className="text-3xl">3.2%</p><p>Churn</p></Card>
+  <Card><p className="text-3xl">{stats.users}</p><p>Users</p></Card>
+  <Card><p className="text-3xl">{stats.revenue}</p><p>Revenue</p></Card>
+  <Card><p className="text-3xl">{stats.churn}</p><p>Churn</p></Card>
 </div>
-{error && <p>Invalid API key</p>}
-{keys.map((key) => <KeyRow key={key.id} {...key} />)}
 ```
 
-After: unchanged.
-
-Tasks:
+After: unchanged. Task:
 ```
-- [ ] src/Overview.tsx  U24 three equal stat cards: pick the figure the screen is for
-- [ ] src/Keys.tsx  U25 the list renders nothing for an empty `keys`, and there is no loading state
-- [ ] src/Keys.tsx  U4 error "Invalid API key" names the failure but not the way out: add the step once the owner says what it is
+- [ ] src/Overview.tsx  U23 three equal stat cards: if revenue is what this screen is for, make it the large figure and the other two smaller
 ```
 
-The skill reports these because fixing them means adding structure or inventing a fact, and it only removes.
+Changing the layout is the owner's call, so the skill only reports it.
 
-## Edge accent bar (U26, with `--surface`)
+## Edge accent bar (U24, surface only)
 
 Before:
 ```jsx
@@ -279,5 +271,4 @@ After:
 <div role="alert" className="border-l-4 border-red-500 bg-red-50 p-4">Payment failed</div>
 ```
 
-The decorative bar becomes a hairline border all round (U26). The neutral `shadow-sm` is not a tell and stays. The bar on the alert marks a real status and stays.
-
+The decorative bar becomes a hairline border all round (U24). The neutral `shadow-sm` is not a tell and stays. The bar on the alert marks a real status and stays.

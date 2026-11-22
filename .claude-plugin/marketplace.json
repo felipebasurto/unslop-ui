@@ -7,8 +7,8 @@
   "plugins": [
     {
       "name": "unslop-ui",
-      "source": "./plugins/unslop-ui",
-      "description": "Cut AI tells from interface and chart copy: eyebrow labels, 01/02/03 numbering, captions that explain what is visible, decorative badges, icons and status dots, arrows on links, generic link names and filler words. With --surface it also fixes gradients, edge accent bars, off-scale spacing, heavy weights and decorative motion. With --plan it shows its cuts and waits for your OK."
+      "source": "./",
+      "description": "Strip AI-generated UI copy, decorative chrome and chart clutter: eyebrow labels, 01/02/03 numbering, captions explaining what is visible, decorative badges, icons and status dots, arrows and generic names on links, equal stat cards and filler words. Also fixes gradients, edge accent bars, off-scale spacing, heavy weights and decorative motion when asked (--surface), or shows a plan first (--plan)."
     }
   ]
 }

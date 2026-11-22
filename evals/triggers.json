@@ -1,0 +1,140 @@
+[
+  {
+    "id": "explicit-pricing-eyebrows",
+    "query": "Clean up the copy in src/pages/Pricing.tsx, it has too many eyebrows and filler subtitles.",
+    "should_trigger": true,
+    "files": {
+      "src/pages/Pricing.tsx": "export function Pricing() {\n  return <section><p className=\"text-xs uppercase tracking-widest\">PRICING</p><h1>Plans</h1><p>Choose the plan that empowers your team.</p></section>;\n}\n"
+    }
+  },
+  {
+    "id": "casual-ai-dashboard",
+    "query": "This dashboard in src/Dashboard.tsx looks super AI-generated and generic. Can you unslop it?",
+    "should_trigger": true,
+    "files": {
+      "src/Dashboard.tsx": "export function Dashboard() {\n  return <main><p className=\"uppercase tracking-widest text-xs\">OVERVIEW</p><h1>Dashboard</h1><p>Your all-in-one hub for real-time insights.</p></main>;\n}\n"
+    }
+  },
+  {
+    "id": "spanish-landing",
+    "query": "Esta landing en app/page.tsx huele a IA por todos lados, límpiale los textos y badges decorativos.",
+    "should_trigger": true,
+    "files": {
+      "app/page.tsx": "export default function Page() {\n  return <main><p className=\"uppercase tracking-widest text-xs\">PRESENTAMOS LIBRO</p><h1>Contabilidad. Simple. Por fin.</h1><span>NUEVO</span></main>;\n}\n"
+    }
+  },
+  {
+    "id": "chart-clutter",
+    "query": "Our revenue chart in src/components/RevenueChart.tsx feels cluttered with a heavy grid, a bottom legend, and captions explaining how to read it. Clean it up.",
+    "should_trigger": true,
+    "files": {
+      "src/components/RevenueChart.tsx": "export const config = {\n  type: \"line\",\n  options: { plugins: { title: { text: \"Line chart of revenue\" }, subtitle: { text: \"Hover to see values.\" }, legend: { display: true, position: \"bottom\" } }, scales: { y: { grid: { color: \"#666\", lineWidth: 2 } } } },\n};\n"
+    }
+  },
+  {
+    "id": "humanize-onboarding",
+    "query": "Can you humanize the interface copy in src/screens/Onboarding.tsx? It reads like a template.",
+    "should_trigger": true,
+    "files": {
+      "src/screens/Onboarding.tsx": "export function Onboarding() {\n  return <section><h1>Welcome! Let's get you started effortlessly.</h1><p>Click the button below to begin your journey.</p><button>Get started →</button></section>;\n}\n"
+    }
+  },
+  {
+    "id": "specific-tells-features",
+    "query": "Strip the 01/02/03 numbering, fake Live dots, and arrows on links from src/components/Features.tsx.",
+    "should_trigger": true,
+    "files": {
+      "src/components/Features.tsx": "export function Features() {\n  return <section><span>01 //</span><h3>Sync</h3><span className=\"size-2 rounded-full bg-green-500 animate-pulse\" />Live<a href=\"/sync\">Learn more →</a></section>;\n}\n"
+    }
+  },
+  {
+    "id": "polish-with-surface",
+    "query": "Polish src/pages/Home.tsx so it stops feeling generic, and fix the neon gradients and scroll fade-ins too.",
+    "should_trigger": true,
+    "files": {
+      "src/pages/Home.tsx": "export function Home() {\n  return <section className=\"bg-gradient-to-r from-indigo-500 to-purple-500\"><p className=\"uppercase text-xs\">INTRODUCING</p><h1 className=\"font-black\">Work. Reimagined.</h1></section>;\n}\n"
+    }
+  },
+  {
+    "id": "share-repo-link",
+    "query": "Use https://github.com/felipebasurto/unslop-ui on src/components/BillingCard.tsx",
+    "should_trigger": true,
+    "files": {
+      "src/components/BillingCard.tsx": "export function BillingCard() {\n  return <div><p className=\"uppercase text-xs\">BILLING</p><h2>Billing</h2><p>Seamlessly manage your subscription here.</p></div>;\n}\n"
+    }
+  },
+  {
+    "id": "repetitive-form-copy",
+    "query": "The signup form in src/SignUp.tsx over-explains every field with repetitive placeholders and helper text. Tighten the UI copy.",
+    "should_trigger": true,
+    "files": {
+      "src/SignUp.tsx": "export function SignUp() {\n  return <form><label htmlFor=\"email\">Email</label><input id=\"email\" placeholder=\"Enter your email\" /><small>We will use this email to contact you.</small></form>;\n}\n"
+    }
+  },
+  {
+    "id": "near-miss-blog-post",
+    "query": "Rewrite this blog post in content/posts/launch.md so it stops sounding AI-generated and has no em dashes.",
+    "should_trigger": false,
+    "files": {
+      "content/posts/launch.md": "# Launching v2\n\nToday we are thrilled to delve into a vibrant new landscape — one that empowers teams seamlessly.\n"
+    }
+  },
+  {
+    "id": "near-miss-email",
+    "query": "Make this cold outreach email to enterprise prospects sound more human and cut the filler words.",
+    "should_trigger": false
+  },
+  {
+    "id": "near-miss-readme",
+    "query": "Clean up the README.md for our Python CLI library so it reads more plainly and drops buzzwords.",
+    "should_trigger": false,
+    "files": {
+      "README.md": "# pyfast\n\nA next-generation, seamless CLI tool that empowers developers to effortlessly run tasks.\n"
+    }
+  },
+  {
+    "id": "near-miss-redesign",
+    "query": "Redesign our pricing page in src/pages/Pricing.tsx from a 3-column grid into a comparison table with a billing toggle.",
+    "should_trigger": false,
+    "files": {
+      "src/pages/Pricing.tsx": "export function Pricing({ plans }: { plans: { name: string; price: string }[] }) {\n  return <div className=\"grid grid-cols-3 gap-6\">{plans.map((p) => <div key={p.name}><h2>{p.name}</h2><p>{p.price}</p></div>)}</div>;\n}\n"
+    }
+  },
+  {
+    "id": "near-miss-new-feature",
+    "query": "Add a dark mode toggle and keyboard shortcuts modal to src/components/Header.tsx.",
+    "should_trigger": false,
+    "files": {
+      "src/components/Header.tsx": "export function Header() {\n  return <header className=\"flex items-center justify-between p-4\"><a href=\"/\">Acme</a><nav><a href=\"/docs\">Docs</a></nav></header>;\n}\n"
+    }
+  },
+  {
+    "id": "near-miss-logic-refactor",
+    "query": "Clean up src/Dashboard.tsx — extract the fetch logic into a custom hook and fix the stale closure bug.",
+    "should_trigger": false,
+    "files": {
+      "src/Dashboard.tsx": "import { useEffect, useState } from \"react\";\nexport function Dashboard({ orgId }: { orgId: string }) {\n  const [rows, setRows] = useState([]);\n  useEffect(() => { fetch(`/api/${orgId}`).then((r) => r.json()).then(setRows); }, []);\n  return <pre>{rows.length}</pre>;\n}\n"
+    }
+  },
+  {
+    "id": "near-miss-css-bug",
+    "query": "Fix the sticky header overlap and mobile horizontal overflow in src/components/Navbar.tsx.",
+    "should_trigger": false,
+    "files": {
+      "src/components/Navbar.tsx": "export function Navbar() {\n  return <header className=\"sticky top-0 flex w-[1200px] items-center justify-between bg-white px-6 py-3\"><a href=\"/\">App</a></header>;\n}\n"
+    }
+  },
+  {
+    "id": "near-miss-chart-type",
+    "query": "Change the revenue chart in src/RevenueChart.tsx from a bar chart to a stacked area chart grouped by region.",
+    "should_trigger": false,
+    "files": {
+      "src/RevenueChart.tsx": "export function RevenueChart({ data }: { data: { month: string; region: string; total: number }[] }) {\n  return <BarChart data={data} />;\n}\n"
+    }
+  },
+  {
+    "id": "near-miss-social-copy",
+    "query": "Write three tagline options for a developer database startup announcing Series A on X.",
+    "should_trigger": false
+  }
+]

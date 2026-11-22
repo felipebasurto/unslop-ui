@@ -1,0 +1,171 @@
+name: Validate
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate skill, plugin manifests, links and eval fixtures
+        run: |
+          python3 - <<'PY'
+          import json
+          import pathlib
+          import py_compile
+          import re
+          import subprocess
+          import sys
+
+          root = pathlib.Path(".")
+          errors = []
+
+          # 1. Agent Skills spec checks on skills/unslop-ui/SKILL.md
+          skill_dir = root / "skills" / "unslop-ui"
+          skill_md = skill_dir / "SKILL.md"
+          text = skill_md.read_text(encoding="utf-8")
+          m = re.match(r"^---\n(.*?)\n---\n(.*)$", text, re.S)
+          if not m:
+              errors.append("SKILL.md missing YAML frontmatter")
+          else:
+              fm_text, body = m.group(1), m.group(2)
+              allowed_keys = {"name", "description", "license", "compatibility", "metadata", "allowed-tools"}
+              fm = {}
+              meta = {}
+              in_metadata = False
+              for line in fm_text.splitlines():
+                  if not line.strip():
+                      continue
+                  if line.startswith((" ", "\t")):
+                      if in_metadata and ":" in line:
+                          mk, mv = line.split(":", 1)
+                          meta[mk.strip()] = mv.strip().strip('"').strip("'")
+                      continue
+                  in_metadata = False
+                  if ":" not in line:
+                      errors.append(f"Invalid frontmatter line: {line!r}")
+                      continue
+                  k, v = line.split(":", 1)
+                  k = k.strip()
+                  v = v.strip().strip('"').strip("'")
+                  if k not in allowed_keys:
+                      errors.append(f"Non-standard Agent Skills frontmatter key: {k}")
+                  fm[k] = v
+                  if k == "metadata":
+                      in_metadata = True
+              name = fm.get("name", "")
+              if name != skill_dir.name:
+                  errors.append(f"SKILL.md name {name!r} != directory name {skill_dir.name!r}")
+              if not re.fullmatch(r"[a-z0-9]+(-[a-z0-9]+)*", name) or len(name) > 64:
+                  errors.append(f"Invalid skill name: {name!r}")
+              desc = fm.get("description", "")
+              if not desc or len(desc) > 1024:
+                  errors.append(f"SKILL.md description length invalid: {len(desc)}")
+              lines = len(text.splitlines())
+              approx_tokens = len(text) // 4
+              if lines > 500:
+                  errors.append(f"SKILL.md too long: {lines} lines (> 500)")
+              if approx_tokens > 5000:
+                  errors.append(f"SKILL.md too large: ~{approx_tokens} tokens (> 5000)")
+
+          # 2. Rule IDs U1..U24 complete and unique across SKILL.md + references/surface.md and README.md
+          rule_sources = [skill_md, skill_dir / "references" / "surface.md"]
+          found_rules = []
+          for src in rule_sources:
+              found_rules.extend(re.findall(r"^- \*\*(U\d+)\.", src.read_text(encoding="utf-8"), re.M))
+          expected_rules = [f"U{i}" for i in range(1, 25)]
+          if sorted(found_rules, key=lambda r: int(r[1:])) != expected_rules or len(found_rules) != len(expected_rules):
+              errors.append(f"Rule IDs mismatch: found {found_rules}, expected U1..U24 once each")
+          readme_rules = re.findall(r"^\| (U\d+) \|", (root / "README.md").read_text(encoding="utf-8"), re.M)
+          if sorted(readme_rules, key=lambda r: int(r[1:])) != expected_rules or len(readme_rules) != len(expected_rules):
+              errors.append(f"README.md rule tables mismatch: found {readme_rules}, expected U1..U24 once each")
+
+          # 3. Claude Code plugin manifests & version sync
+          plugin = json.loads((root / ".claude-plugin" / "plugin.json").read_text(encoding="utf-8"))
+          marketplace = json.loads((root / ".claude-plugin" / "marketplace.json").read_text(encoding="utf-8"))
+          if not re.fullmatch(r"\d+\.\d+\.\d+(?:[-+].+)?", plugin.get("version", "")):
+              errors.append(f"Invalid plugin version: {plugin.get('version')!r}")
+          if meta.get("version") != plugin.get("version"):
+              errors.append(f"SKILL.md metadata.version {meta.get('version')!r} != plugin.json version {plugin.get('version')!r}")
+          mp_names = [p.get("name") for p in marketplace.get("plugins", [])]
+          if plugin.get("name") not in mp_names:
+              errors.append("plugin.json name missing from marketplace.json")
+          for entry in marketplace.get("plugins", []):
+              src = (root / entry.get("source", "")).resolve()
+              if not src.is_dir():
+                  errors.append(f"marketplace plugin source does not exist: {entry.get('source')!r}")
+
+          # 4. Local markdown links and image src paths
+          md_files = [
+              root / "README.md",
+              root / "CHANGELOG.md",
+              skill_md,
+              *sorted((skill_dir / "references").glob("*.md")),
+          ]
+          for mf in md_files:
+              content = mf.read_text(encoding="utf-8")
+              for match in re.finditer(r"!?\[[^\]]*\]\(([^)]+)\)", content):
+                  href = match.group(1).split("#", 1)[0]
+                  if not href or href.startswith(("http://", "https://")):
+                      continue
+                  if not (mf.parent / href).resolve().exists():
+                      errors.append(f"Broken link in {mf}: {href}")
+              for match in re.finditer(r'src="([^"]+)"', content):
+                  href = match.group(1)
+                  if href.startswith(("http://", "https://")):
+                      continue
+                  if not (mf.parent / href).resolve().exists():
+                      errors.append(f"Broken image src in {mf}: {href}")
+
+          # 5. Eval fixtures <-> expect.json and JSON syntax
+          expect = json.loads((root / "evals" / "expect.json").read_text(encoding="utf-8"))
+          fixture_dirs = sorted(p.name for p in (root / "evals" / "fixtures").iterdir() if p.is_dir())
+          if fixture_dirs != sorted(expect.keys()):
+              errors.append(f"evals/fixtures ({fixture_dirs}) != expect.json keys ({sorted(expect.keys())})")
+          for name, spec in expect.items():
+              for fname in spec.get("files", {}):
+                  fp = root / "evals" / "fixtures" / name / fname
+                  if not fp.exists():
+                      errors.append(f"Missing eval fixture file: {fp}")
+          triggers = json.loads((root / "evals" / "triggers.json").read_text(encoding="utf-8"))
+          seen_ids = set()
+          for case in triggers:
+              cid = case.get("id")
+              if not cid or cid in seen_ids or not isinstance(case.get("query"), str) or not isinstance(case.get("should_trigger"), bool):
+                  errors.append(f"Invalid trigger case: {case!r}")
+              files_map = case.get("files", {})
+              if not isinstance(files_map, dict) or any(
+                  not isinstance(p, str) or not isinstance(c, str) or p.startswith("/") or ".." in pathlib.Path(p).parts
+                  for p, c in files_map.items()
+              ):
+                  errors.append(f"Invalid files map in trigger case {cid!r}")
+              seen_ids.add(cid)
+          json_files = [root / p for p in subprocess.check_output(["git", "ls-files", "*.json"], text=True).splitlines()]
+          for jf in json_files:
+              if jf.exists():
+                  json.loads(jf.read_text(encoding="utf-8"))
+
+          # 6. Python syntax for evals/run.py
+          py_compile.compile(str(root / "evals" / "run.py"), doraise=True)
+
+          # 7. No OS metadata files tracked in git
+          tracked = subprocess.check_output(["git", "ls-files"], text=True).splitlines()
+          for path in tracked:
+              if pathlib.Path(path).name in {".DS_Store", "Thumbs.db", "desktop.ini"}:
+                  errors.append(f"Tracked OS metadata file: {path}")
+
+          if errors:
+              for e in errors:
+                  print("ERROR:", e, file=sys.stderr)
+              sys.exit(1)
+          print(f"OK: {len(expected_rules)} rules, {len(expect)} eval fixtures, all manifests and links valid.")
+          PY

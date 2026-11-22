@@ -23,8 +23,8 @@ export function renderWau(canvas, weeks, thisYear, lastYear) {
         },
       },
       scales: {
-        x: { grid: { color: "#e5e7eb", lineWidth: 1 }, border: { display: true, width: 1, color: "#e5e7eb" } },
-        y: { grid: { color: "#e5e7eb", lineWidth: 1 }, border: { display: true, width: 1, color: "#e5e7eb" }, ticks: { stepSize: 25 } },
+        x: { grid: { display: false }, border: { display: true, width: 1, color: "#e5e7eb" } },
+        y: { grid: { color: "#e5e7eb", lineWidth: 1 }, border: { display: false }, ticks: { stepSize: 25 } },
       },
     },
   });
