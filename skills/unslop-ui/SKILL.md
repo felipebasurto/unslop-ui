@@ -3,7 +3,7 @@ name: unslop-ui
 description: "Strip AI-generated UI copy, decorative chrome (eyebrows, 01/02/03 numbering, badges, dots, arrows, edge stripes) and chart clutter (titles, legends, gridlines) from web pages, apps, dashboards and charts. Use when asked to clean up, tighten, polish, declutter, unslop or humanize interface copy and visual surface (gradients, spacing, motion, edge alignment), cut filler or em dashes, when a screen looks AI-made or generic, or as a final pass once you finish building or restyling a screen. Not for the build itself: layout redesigns, new features, chart-type or data changes, logic refactors, or non-UI prose (docs, emails, blog posts)."
 license: MIT
 metadata:
-  version: "1.0.1"
+  version: "1.0.2"
 ---
 
 # Unslop UI
@@ -67,7 +67,7 @@ The test for real state, in U6, U9 and U10: the element renders from a condition
 
 ## Writing rules
 
-Apply these to every sentence you keep or write. Cite them as "unslop 13", so they don't read as U rules. They come from the unslop skill in [pstack](https://github.com/cursor/plugins/tree/main/pstack) by Lauren Tan (MIT), and keep its numbers, so gaps are expected. For copy in another language, apply their intent and skip what only makes sense in English.
+Apply these to every sentence you keep or write, citing them as "unslop 13" (adapted from Lauren Tan's unslop in [pstack](https://github.com/cursor/plugins/tree/main/pstack), MIT; gaps in numbering are expected). In other languages, apply the intent and skip English-only rules.
 
 - **3. Superficial -ing phrases.** "showing strong momentum", "ensuring a smooth experience". Delete the phrase.
 - **5. Vague attributions.** "Experts believe", "Loved by industry leaders". Name a real source or cut (specific unverified numbers or named quotes still become tasks).
@@ -129,8 +129,8 @@ For before/after pairs, read [references/examples.md](references/examples.md) wh
 
    If you can render the screen, look at it: a hole where an element was, or a row with one item left, is a leftover to fix.
 5. **Report**, in the language the owner used to ask you, quoting screen copy as it is:
-   - **When unslop-ui is the whole task:** open with the verdict (plus `Off by taste file: ...` if any), then the table below (omit the table on `None` or `--plan`), then up to three lists, and nothing else. `Kept` is how many you left on purpose.
-   - **When running as a final pass after building or restyling a screen:** apply the rules as part of the edit and add only a short note on what you cleaned and any tasks left for the owner. Skip the note if nothing needed cleaning and there are no tasks.
+   - **Standalone run:** open with the verdict (plus `Off by taste file: ...` if any), then the table below (omit on `None` or `--plan`), then up to three lists, nothing else. `Kept` counts items left on purpose.
+   - **Final pass after building/restyling:** apply the rules in the edit and add a short note on what you cleaned and any tasks. Omit if nothing changed and there are no tasks.
 
 | Rule | Found | Fixed | Kept |
 |---|---|---|---|

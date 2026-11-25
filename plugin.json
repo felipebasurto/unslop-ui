@@ -1,0 +1,23 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "unslop-ui",
+  "version": "1.0.2",
+  "description": "Strip AI-generated UI copy, decorative chrome and chart clutter: eyebrow labels, 01/02/03 numbering, captions explaining what is visible, decorative badges, icons and status dots, arrows and generic names on links, edge accent stripes, equal stat cards and filler words. Also fixes gradients, off-scale spacing, heavy weights and decorative motion when asked (--surface), or shows a plan first (--plan).",
+  "author": {
+    "name": "Felipe Basurto"
+  },
+  "homepage": "https://github.com/felipebasurto/unslop-ui",
+  "repository": "https://github.com/felipebasurto/unslop-ui",
+  "license": "MIT",
+  "keywords": [
+    "unslop",
+    "ai-slop",
+    "ui",
+    "ux-writing",
+    "copywriting",
+    "design",
+    "dashboards",
+    "charts",
+    "agent-skills"
+  ]
+}

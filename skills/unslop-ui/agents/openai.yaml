@@ -1,0 +1,7 @@
+interface:
+  display_name: "Unslop UI"
+  short_description: "Strip AI-generated UI copy, decorative chrome and chart clutter"
+  default_prompt: "Run $unslop-ui on the changed UI files to cut AI copy and decorative chrome."
+
+policy:
+  allow_implicit_invocation: true

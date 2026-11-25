@@ -12,10 +12,10 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
-          python-version: "3.12"
+          python-version: "3.13"
       - name: Validate skill, plugin manifests, links and eval fixtures
         run: |
           python3 - <<'PY'
@@ -77,25 +77,37 @@ jobs:
               if approx_tokens > 5000:
                   errors.append(f"SKILL.md too large: ~{approx_tokens} tokens (> 5000)")
 
-          # 2. Rule IDs U1..U24 complete and unique across SKILL.md + references/surface.md and README.md
+          # 2. Rule IDs U1..U25 complete and unique across SKILL.md + references/surface.md and README.md
           rule_sources = [skill_md, skill_dir / "references" / "surface.md"]
           found_rules = []
           for src in rule_sources:
               found_rules.extend(re.findall(r"^- \*\*(U\d+)\.", src.read_text(encoding="utf-8"), re.M))
-          expected_rules = [f"U{i}" for i in range(1, 25)]
+          expected_rules = [f"U{i}" for i in range(1, 26)]
           if sorted(found_rules, key=lambda r: int(r[1:])) != expected_rules or len(found_rules) != len(expected_rules):
-              errors.append(f"Rule IDs mismatch: found {found_rules}, expected U1..U24 once each")
+              errors.append(f"Rule IDs mismatch: found {found_rules}, expected U1..U25 once each")
           readme_rules = re.findall(r"^\| (U\d+) \|", (root / "README.md").read_text(encoding="utf-8"), re.M)
           if sorted(readme_rules, key=lambda r: int(r[1:])) != expected_rules or len(readme_rules) != len(expected_rules):
-              errors.append(f"README.md rule tables mismatch: found {readme_rules}, expected U1..U24 once each")
+              errors.append(f"README.md rule tables mismatch: found {readme_rules}, expected U1..U25 once each")
 
-          # 3. Claude Code plugin manifests & version sync
+          # 3. Plugin & extension manifests + version sync
+          ap = json.loads((root / "plugin.json").read_text(encoding="utf-8"))
           plugin = json.loads((root / ".claude-plugin" / "plugin.json").read_text(encoding="utf-8"))
           marketplace = json.loads((root / ".claude-plugin" / "marketplace.json").read_text(encoding="utf-8"))
-          if not re.fullmatch(r"\d+\.\d+\.\d+(?:[-+].+)?", plugin.get("version", "")):
-              errors.append(f"Invalid plugin version: {plugin.get('version')!r}")
-          if meta.get("version") != plugin.get("version"):
-              errors.append(f"SKILL.md metadata.version {meta.get('version')!r} != plugin.json version {plugin.get('version')!r}")
+          cursor = json.loads((root / ".cursor-plugin" / "plugin.json").read_text(encoding="utf-8"))
+          gemini = json.loads((root / "gemini-extension.json").read_text(encoding="utf-8"))
+
+          ap_allowed = {"$schema", "name", "version", "description", "author", "homepage", "repository", "license", "keywords", "extensions"}
+          if ap.get("$schema") != "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json" or not set(ap).issubset(ap_allowed):
+              errors.append(f"root plugin.json schema mismatch: {sorted(ap)}")
+          versions = {
+              "SKILL.md": meta.get("version"),
+              "plugin.json": ap.get("version"),
+              ".claude-plugin/plugin.json": plugin.get("version"),
+              ".cursor-plugin/plugin.json": cursor.get("version"),
+              "gemini-extension.json": gemini.get("version"),
+          }
+          if len(set(versions.values())) != 1 or not re.fullmatch(r"\d+\.\d+\.\d+(?:[-+].+)?", str(plugin.get("version", ""))):
+              errors.append(f"Version mismatch across manifests: {versions}")
           mp_names = [p.get("name") for p in marketplace.get("plugins", [])]
           if plugin.get("name") not in mp_names:
               errors.append("plugin.json name missing from marketplace.json")
@@ -103,8 +115,24 @@ jobs:
               src = (root / entry.get("source", "")).resolve()
               if not src.is_dir():
                   errors.append(f"marketplace plugin source does not exist: {entry.get('source')!r}")
+          if plugin.get("icon") and not (root / plugin["icon"]).is_file():
+              errors.append(f"Missing Claude plugin icon: {plugin['icon']}")
+          cur_allowed = {"name", "description", "version", "author", "homepage", "repository", "license", "keywords", "logo", "rules", "agents", "skills", "commands", "hooks", "mcpServers", "variables"}
+          if not set(cursor).issubset(cur_allowed):
+              errors.append(f"Unknown fields in .cursor-plugin/plugin.json: {sorted(set(cursor) - cur_allowed)}")
+          if not (root / cursor.get("logo", "")).is_file() or not (root / cursor.get("skills", "")).is_dir():
+              errors.append(".cursor-plugin/plugin.json logo or skills path missing")
 
-          # 4. Local markdown links and image src paths
+          # 4. OpenAI Codex agents/openai.yaml
+          oai = (skill_dir / "agents" / "openai.yaml").read_text(encoding="utf-8")
+          sd_m = re.search(r'^\s*short_description:\s*"([^"]+)"\s*$', oai, re.M)
+          dp_m = re.search(r'^\s*default_prompt:\s*"([^"]+)"\s*$', oai, re.M)
+          if not sd_m or not (25 <= len(sd_m.group(1)) <= 64):
+              errors.append(f"openai.yaml short_description length must be 25-64 (got {len(sd_m.group(1)) if sd_m else 0})")
+          if not dp_m or "$unslop-ui" not in dp_m.group(1):
+              errors.append("openai.yaml default_prompt must mention $unslop-ui")
+
+          # 5. Local markdown links and image src paths
           md_files = [
               root / "README.md",
               root / "CHANGELOG.md",
@@ -126,7 +154,7 @@ jobs:
                   if not (mf.parent / href).resolve().exists():
                       errors.append(f"Broken image src in {mf}: {href}")
 
-          # 5. Eval fixtures <-> expect.json and JSON syntax
+          # 6. Eval fixtures <-> expect.json and JSON syntax
           expect = json.loads((root / "evals" / "expect.json").read_text(encoding="utf-8"))
           fixture_dirs = sorted(p.name for p in (root / "evals" / "fixtures").iterdir() if p.is_dir())
           if fixture_dirs != sorted(expect.keys()):
@@ -154,10 +182,10 @@ jobs:
               if jf.exists():
                   json.loads(jf.read_text(encoding="utf-8"))
 
-          # 6. Python syntax for evals/run.py
+          # 7. Python syntax for evals/run.py
           py_compile.compile(str(root / "evals" / "run.py"), doraise=True)
 
-          # 7. No OS metadata files tracked in git
+          # 8. No OS metadata files tracked in git
           tracked = subprocess.check_output(["git", "ls-files"], text=True).splitlines()
           for path in tracked:
               if pathlib.Path(path).name in {".DS_Store", "Thumbs.db", "desktop.ini"}:
